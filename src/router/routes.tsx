@@ -29,6 +29,7 @@ const AnalyticsPage = lazy(() => import('@/pages/analytics/AnalyticsPage'))
 const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'))
 const NotificationsPage = lazy(() => import('@/pages/notifications/NotificationsPage'))
 const AdminPage = lazy(() => import('@/pages/admin/AdminPage'))
+const BusinessesPage = lazy(() => import('@/pages/businesses/BusinessesPage'))
 
 export const router = createBrowserRouter([
   {
@@ -82,6 +83,15 @@ export const router = createBrowserRouter([
         element: (
           <RoleGuard allowed={['super_admin']}>
             {wrap(AdminPage)}
+          </RoleGuard>
+        ),
+      },
+
+      {
+        path: 'businesses',
+        element: (
+          <RoleGuard allowed={['super_admin']}>
+            {wrap(BusinessesPage)}
           </RoleGuard>
         ),
       },

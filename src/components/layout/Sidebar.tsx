@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import {
   LayoutDashboard, Users, CreditCard, Dumbbell, Salad,
   CalendarCheck, BarChart3, Bell, Settings, Shield,
-  UserCog, Layers, Zap,
+  UserCog, Layers, Zap, Building2,
 } from 'lucide-react'
 
 const navItems = [
@@ -20,6 +20,7 @@ const navItems = [
   { to: '/analytics',     label: 'Analytics',      icon: BarChart3,       roles: ['gym_owner', 'staff'] },
   { to: '/notifications', label: 'Notifications',  icon: Bell,            roles: ['*'] },
   { to: '/settings',      label: 'Settings',       icon: Settings,        roles: ['gym_owner'] },
+  { to: '/businesses',    label: 'Businesses',     icon: Building2,       roles: ['super_admin'] },
   { to: '/admin',         label: 'Platform Admin', icon: Shield,          roles: ['super_admin'] },
 ]
 
