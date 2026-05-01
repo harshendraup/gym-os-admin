@@ -81,11 +81,11 @@ const columns: ColumnDef<Member>[] = [
 ]
 
 export default function MembersPage() {
-  const [search, setSearch]   = useState('')
-  const [status, setStatus]   = useState<string>('')
-  const [page, setPage]       = useState(1)
+  const [search, setSearch] = useState('')
+  const [status, setStatus] = useState<string>('')
+  const [page, setPage] = useState(1)
   const [addOpen, setAddOpen] = useState(false)
-  const debouncedSearch       = useDebounce(search, 400)
+  const debouncedSearch = useDebounce(search, 400)
 
   const { data, isLoading } = useMembers({
     search: debouncedSearch || undefined,
@@ -99,7 +99,7 @@ export default function MembersPage() {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Members</h1>
+          <h1 className="text-3xl font-bold text-white">Businesses</h1>
           <p className="mt-1 text-sm" style={{ color: '#64748B' }}>
             {data?.meta?.total ?? 0} total members
           </p>
@@ -166,9 +166,9 @@ export default function MembersPage() {
           }}
         >
           <option value="" style={{ background: '#1E293B' }}>All Status</option>
-          <option value="active"  style={{ background: '#1E293B' }}>Active</option>
+          <option value="active" style={{ background: '#1E293B' }}>Active</option>
           <option value="expired" style={{ background: '#1E293B' }}>Expired</option>
-          <option value="frozen"  style={{ background: '#1E293B' }}>Frozen</option>
+          <option value="frozen" style={{ background: '#1E293B' }}>Frozen</option>
           <option value="pending" style={{ background: '#1E293B' }}>Pending</option>
         </select>
       </div>
