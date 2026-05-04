@@ -10,7 +10,7 @@ export default function AppLayout() {
   return (
     <div
       className="relative flex h-screen overflow-hidden"
-      style={{ backgroundColor: '#060d1f' }}
+      style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)' }}
     >
       <style>{`
         :root {
@@ -34,7 +34,7 @@ export default function AppLayout() {
           width: '680px',
           height: '680px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle at center, rgba(59,130,246,0.22) 0%, transparent 68%)',
+          background: 'radial-gradient(circle at center, rgba(59,130,246,0.08) 0%, transparent 68%)',
           filter: 'blur(32px)',
         }} />
         {/* Purple — bottom-right */}
@@ -45,7 +45,7 @@ export default function AppLayout() {
           width: '620px',
           height: '620px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle at center, rgba(139,92,246,0.18) 0%, transparent 68%)',
+          background: 'radial-gradient(circle at center, rgba(139,92,246,0.06) 0%, transparent 68%)',
           filter: 'blur(32px)',
         }} />
         {/* Teal — mid-right */}

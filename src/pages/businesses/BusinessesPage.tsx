@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, forwardRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -20,9 +21,9 @@ import { cn } from '@/lib/utils'
 
 function StatusBadge({ status }: { status: BusinessStatus }) {
   const map = {
-    active:    { label: 'Active',    Icon: CheckCircle2, color: '#10B981', bg: 'rgba(16,185,129,0.12)',  border: 'rgba(16,185,129,0.25)' },
-    pending:   { label: 'Pending',   Icon: Clock,        color: '#F59E0B', bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.25)' },
-    suspended: { label: 'Suspended', Icon: XCircle,      color: '#EF4444', bg: 'rgba(239,68,68,0.12)',   border: 'rgba(239,68,68,0.25)'  },
+    active: { label: 'Active', Icon: CheckCircle2, color: '#059669', bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.35)' },
+    pending: { label: 'Pending', Icon: Clock, color: '#D97706', bg: 'rgba(217,119,6,0.15)', border: 'rgba(217,119,6,0.35)' },
+    suspended: { label: 'Suspended', Icon: XCircle, color: '#DC2626', bg: 'rgba(220,38,38,0.15)', border: 'rgba(220,38,38,0.35)' },
   } as const
   const cfg = map[status]
   if (!cfg) return null
@@ -40,8 +41,8 @@ function StatusBadge({ status }: { status: BusinessStatus }) {
 function TypeBadge({ type }: { type: string }) {
   const map: Record<string, { label: string; color: string; bg: string; border: string }> = {
     independent: { label: 'Independent', color: '#8B5CF6', bg: 'rgba(139,92,246,0.12)', border: 'rgba(139,92,246,0.25)' },
-    chain:       { label: 'Chain',       color: '#3B82F6', bg: 'rgba(59,130,246,0.12)',  border: 'rgba(59,130,246,0.25)' },
-    franchise:   { label: 'Franchise',   color: '#06B6D4', bg: 'rgba(6,182,212,0.12)',   border: 'rgba(6,182,212,0.25)'  },
+    chain: { label: 'Chain', color: '#3B82F6', bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.25)' },
+    franchise: { label: 'Franchise', color: '#06B6D4', bg: 'rgba(6,182,212,0.12)', border: 'rgba(6,182,212,0.25)' },
   }
   const cfg = map[type] ?? { label: type, color: '#94A3B8', bg: 'rgba(148,163,184,0.12)', border: 'rgba(148,163,184,0.25)' }
   return (
@@ -70,32 +71,52 @@ function ActionMenu({
   isPending: boolean
 }) {
   const [open, setOpen] = useState(false)
+  const [position, setPosition] = useState({ top: 0, right: 0 })
+  const buttonRef = useRef<HTMLButtonElement>(null)
   const ref = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      const target = e.target as Node
+      const insideTrigger = !!buttonRef.current?.contains(target)
+      const insideAnchor = !!ref.current?.contains(target)
+      const insideMenu = !!menuRef.current?.contains(target)
+      if (!insideTrigger && !insideAnchor && !insideMenu) {
+        setOpen(false)
+      }
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
+  useEffect(() => {
+    if (open && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      setPosition({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right,
+      })
+    }
+  }, [open])
+
   const statusOpts = [
-    { status: 'active' as BusinessStatus,    label: 'Mark Active',  color: '#10B981' },
-    { status: 'pending' as BusinessStatus,   label: 'Mark Pending', color: '#F59E0B' },
-    { status: 'suspended' as BusinessStatus, label: 'Suspend',      color: '#EF4444' },
+    { status: 'active' as BusinessStatus, label: 'Mark Active', color: '#059669' },
+    { status: 'pending' as BusinessStatus, label: 'Mark Pending', color: '#D97706' },
+    { status: 'suspended' as BusinessStatus, label: 'Suspend', color: '#DC2626' },
   ].filter((o) => o.status !== business.status)
 
   return (
-    <div className="relative" ref={ref}>
+    <div ref={ref}>
       <button
+        ref={buttonRef}
         onClick={() => setOpen((p) => !p)}
         disabled={isPending}
         className="flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-150 disabled:opacity-40"
         style={{
-          background: open ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          color: '#94A3B8',
+          background: open ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.04)',
+          border: '1px solid rgba(59,130,246,0.1)',
+          color: '#64748b',
         }}
       >
         {isPending
@@ -104,31 +125,34 @@ function ActionMenu({
         }
       </button>
 
-      {open && (
+      {open && createPortal(
         <div
-          className="absolute right-0 top-10 z-50 min-w-[172px] overflow-hidden rounded-xl py-1"
+          ref={menuRef}
+          className="fixed z-[9999] min-w-[172px] overflow-hidden rounded-xl py-1"
           style={{
-            background: 'rgba(10,18,35,0.98)',
+            top: `${position.top}px`,
+            right: `${position.right}px`,
+            background: 'rgba(255,255,255,0.95)',
             backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            boxShadow: '0 24px 48px rgba(0,0,0,0.5)',
+            border: '1px solid rgba(59,130,246,0.15)',
+            boxShadow: '0 24px 48px rgba(0,0,0,0.1)',
           }}
         >
           <button
             onClick={() => { onEdit(); setOpen(false) }}
-            className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
+            className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-900 transition-colors"
           >
             <Edit2 className="h-3.5 w-3.5" />
             Edit Details
           </button>
 
-          <div className="my-1 mx-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }} />
+          <div className="my-1 mx-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }} />
 
           {statusOpts.map(({ status, label, color }) => (
             <button
               key={status}
               onClick={() => { onStatusChange(status); setOpen(false) }}
-              className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-white/5 transition-colors"
+              className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-slate-50 transition-colors"
               style={{ color }}
             >
               <RefreshCw className="h-3.5 w-3.5" />
@@ -136,17 +160,18 @@ function ActionMenu({
             </button>
           ))}
 
-          <div className="my-1 mx-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }} />
+          <div className="my-1 mx-3" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }} />
 
           <button
             onClick={() => { onDelete(); setOpen(false) }}
-            className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-red-500/10 transition-colors"
-            style={{ color: '#EF4444' }}
+            className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-red-50 transition-colors"
+            style={{ color: '#DC2626' }}
           >
             <Trash2 className="h-3.5 w-3.5" />
             Delete
           </button>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
@@ -172,27 +197,27 @@ function DeleteDialog({
       <DialogContent
         className="sm:max-w-sm"
         style={{
-          background: 'rgba(12,20,38,0.98)',
+          background: 'rgba(255,255,255,0.95)',
           backdropFilter: 'blur(24px)',
-          border: '1px solid rgba(239,68,68,0.2)',
-          boxShadow: '0 32px 64px rgba(0,0,0,0.5)',
+          border: '1px solid rgba(220,38,38,0.2)',
+          boxShadow: '0 32px 64px rgba(0,0,0,0.1)',
         }}
       >
         <DialogHeader>
           <div className="flex items-center gap-3 mb-1">
             <div
               className="flex h-10 w-10 items-center justify-center rounded-xl flex-shrink-0"
-              style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.2)' }}
+              style={{ background: 'rgba(220,38,38,0.12)', border: '1px solid rgba(220,38,38,0.2)' }}
             >
-              <AlertTriangle className="h-5 w-5" style={{ color: '#EF4444' }} />
+              <AlertTriangle className="h-5 w-5" style={{ color: '#DC2626' }} />
             </div>
-            <DialogTitle className="text-white">Delete Business</DialogTitle>
+            <DialogTitle className="text-slate-900">Delete Business</DialogTitle>
           </div>
         </DialogHeader>
 
-        <p className="text-sm leading-relaxed" style={{ color: '#94A3B8' }}>
+        <p className="text-sm leading-relaxed" style={{ color: '#64748B' }}>
           Are you sure you want to delete{' '}
-          <span className="font-semibold text-white">{business?.name}</span>?
+          <span className="font-semibold text-slate-900">{business?.name}</span>?
           This is a soft delete and can be reviewed later.
         </p>
 
@@ -200,7 +225,7 @@ function DeleteDialog({
           <button
             onClick={onClose}
             className="rounded-xl px-4 py-2 text-sm font-medium transition-all duration-150"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: '#94A3B8' }}
+            style={{ background: 'rgba(59,130,246,0.05)', border: '1px solid rgba(59,130,246,0.15)', color: '#64748B' }}
           >
             Cancel
           </button>
@@ -208,7 +233,7 @@ function DeleteDialog({
             onClick={onConfirm}
             disabled={isPending}
             className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white transition-all duration-150 disabled:opacity-50"
-            style={{ background: 'rgba(239,68,68,0.8)', border: '1px solid rgba(239,68,68,0.4)' }}
+            style={{ background: 'rgba(220,38,38,0.8)', border: '1px solid rgba(220,38,38,0.4)' }}
           >
             {isPending
               ? <><div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />Deleting...</>
@@ -221,33 +246,41 @@ function DeleteDialog({
   )
 }
 
+// ─── Business Key Helper ──────────────────────────────────────────────────────
+
+function generateBusinessKey(): string {
+  const ts = Date.now().toString(36).toUpperCase()
+  const rand = Math.random().toString(36).substring(2, 8).toUpperCase()
+  return `BIZ-${ts}-${rand}`
+}
+
 // ─── Form ─────────────────────────────────────────────────────────────────────
 
 const businessSchema = z.object({
-  name:               z.string().min(2, 'Business name is required'),
-  legalName:          z.string().optional(),
+  name: z.string().min(2, 'Business name is required'),
+  legalName: z.string().optional(),
   registrationNumber: z.string().optional(),
-  type:               z.enum(['independent', 'chain', 'franchise'], { required_error: 'Type is required' }),
-  email:              z.string().email('Valid email required'),
-  phone:              z.string().min(7, 'Phone is required'),
-  website:            z.string().url('Enter a valid URL').optional().or(z.literal('')),
-  addressLine1:       z.string().min(1, 'Address is required'),
-  addressLine2:       z.string().optional(),
-  city:               z.string().min(1, 'City is required'),
-  state:              z.string().min(1, 'State is required'),
-  pincode:            z.string().min(4, 'Pincode is required'),
-  country:            z.string().min(1, 'Country is required'),
-  logoUrl:            z.string().url('Enter a valid URL').optional().or(z.literal('')),
+  type: z.enum(['independent', 'chain', 'franchise'], { required_error: 'Type is required' }),
+  email: z.string().email('Valid email required'),
+  phone: z.string().min(7, 'Phone is required'),
+  website: z.string().url('Enter a valid URL').optional().or(z.literal('')),
+  addressLine1: z.string().min(1, 'Address is required'),
+  addressLine2: z.string().optional(),
+  city: z.string().min(1, 'City is required'),
+  state: z.string().min(1, 'State is required'),
+  pincode: z.string().min(4, 'Pincode is required'),
+  country: z.string().min(1, 'Country is required'),
+  logoUrl: z.string().url('Enter a valid URL').optional().or(z.literal('')),
 })
 type FormData = z.infer<typeof businessSchema>
 
 function SectionLabel({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-3">
-      <p className="text-[10px] font-bold uppercase tracking-widest flex-shrink-0" style={{ color: '#3B82F6' }}>
+      <p className="text-[10px] font-bold uppercase tracking-widest flex-shrink-0" style={{ color: '#2563EB' }}>
         {label}
       </p>
-      <div className="flex-1" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }} />
+      <div className="flex-1" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }} />
     </div>
   )
 }
@@ -257,17 +290,17 @@ const GlassInput = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLIn
     <input
       ref={ref}
       className={cn(
-        'w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition-all duration-200 placeholder:text-slate-600',
+        'w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition-all duration-200 placeholder:text-slate-400',
         className,
       )}
-      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: '#FFFFFF' }}
+      style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(59,130,246,0.15)', color: '#1e293b' }}
       onFocus={(e) => {
         e.target.style.border = '1px solid rgba(59,130,246,0.5)'
         e.target.style.boxShadow = '0 0 0 3px rgba(59,130,246,0.1)'
         onFocus?.(e)
       }}
       onBlur={(e) => {
-        e.target.style.border = '1px solid rgba(255,255,255,0.08)'
+        e.target.style.border = '1px solid rgba(59,130,246,0.15)'
         e.target.style.boxShadow = 'none'
         onBlur?.(e)
       }}
@@ -284,12 +317,12 @@ function GlassSelect({ value, children, onChange, ...props }: React.SelectHTMLAt
       onChange={onChange}
       className="w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition-all duration-200 cursor-pointer"
       style={{
-        background: 'rgba(255,255,255,0.05)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        color: value ? '#FFFFFF' : '#64748B',
+        background: 'rgba(255,255,255,0.6)',
+        border: '1px solid rgba(59,130,246,0.15)',
+        color: value ? '#1e293b' : '#64748B',
       }}
       onFocus={(e) => { e.target.style.border = '1px solid rgba(59,130,246,0.5)' }}
-      onBlur={(e)  => { e.target.style.border = '1px solid rgba(255,255,255,0.08)' }}
+      onBlur={(e) => { e.target.style.border = '1px solid rgba(59,130,246,0.15)' }}
       {...props}
     >
       {children}
@@ -299,7 +332,7 @@ function GlassSelect({ value, children, onChange, ...props }: React.SelectHTMLAt
 
 function FieldError({ msg }: { msg?: string }) {
   if (!msg) return null
-  return <p className="mt-1 text-xs" style={{ color: '#EF4444' }}>{msg}</p>
+  return <p className="mt-1 text-xs" style={{ color: '#DC2626' }}>{msg}</p>
 }
 
 function FormField({ label, required, error, children }: {
@@ -308,7 +341,7 @@ function FormField({ label, required, error, children }: {
   return (
     <div>
       <label className="block mb-1.5 text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#64748B' }}>
-        {label}{required && <span className="ml-0.5" style={{ color: '#3B82F6' }}>*</span>}
+        {label}{required && <span className="ml-0.5" style={{ color: '#2563EB' }}>*</span>}
       </label>
       {children}
       <FieldError msg={error} />
@@ -328,6 +361,8 @@ function BusinessFormDialog({
   const qc = useQueryClient()
   const isEdit = !!editBusiness
 
+  const [businessKey, setBusinessKey] = useState('')
+
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(businessSchema),
     defaultValues: { country: 'India', type: 'independent' },
@@ -335,22 +370,26 @@ function BusinessFormDialog({
 
   useEffect(() => {
     if (open && editBusiness) {
+      setBusinessKey(editBusiness.businessKey ?? '')
       reset({
-        name:               editBusiness.name,
-        legalName:          editBusiness.legalName  ?? '',
+        name: editBusiness.name,
+        legalName: editBusiness.legalName ?? '',
         registrationNumber: editBusiness.registrationNumber ?? '',
-        type:               editBusiness.type,
-        email:              editBusiness.email,
-        phone:              editBusiness.phone,
-        website:            editBusiness.website    ?? '',
-        addressLine1:       editBusiness.addressLine1,
-        addressLine2:       editBusiness.addressLine2 ?? '',
-        city:               editBusiness.city,
-        state:              editBusiness.state,
-        pincode:            editBusiness.pincode,
-        country:            editBusiness.country,
-        logoUrl:            editBusiness.logoUrl    ?? '',
+        type: editBusiness.type,
+        email: editBusiness.email,
+        phone: editBusiness.phone,
+        website: editBusiness.website ?? '',
+        addressLine1: editBusiness.addressLine1,
+        addressLine2: editBusiness.addressLine2 ?? '',
+        city: editBusiness.city,
+        state: editBusiness.state,
+        pincode: editBusiness.pincode,
+        country: editBusiness.country,
+        logoUrl: editBusiness.logoUrl ?? '',
       })
+    } else if (open && !editBusiness) {
+      setBusinessKey(generateBusinessKey())
+      reset({ country: 'India', type: 'independent' })
     } else if (!open) {
       reset({ country: 'India', type: 'independent' })
     }
@@ -359,13 +398,13 @@ function BusinessFormDialog({
   const createMutation = useMutation({
     mutationFn: (d: BusinessPayload) => businessesApi.create(d),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin', 'businesses'] }); toast({ title: 'Business created' }); onClose() },
-    onError:   () => toast({ title: 'Failed to create business', variant: 'destructive' }),
+    onError: () => toast({ title: 'Failed to create business', variant: 'destructive' }),
   })
 
   const updateMutation = useMutation({
     mutationFn: (d: Partial<BusinessPayload>) => businessesApi.update(editBusiness!.id, d),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin', 'businesses'] }); toast({ title: 'Business updated' }); onClose() },
-    onError:   () => toast({ title: 'Failed to update business', variant: 'destructive' }),
+    onError: () => toast({ title: 'Failed to update business', variant: 'destructive' }),
   })
 
   const isPending = createMutation.isPending || updateMutation.isPending
@@ -373,20 +412,21 @@ function BusinessFormDialog({
 
   const onSubmit = (data: FormData) => {
     const payload: BusinessPayload = {
-      name:         data.name,
-      type:         data.type,
-      email:        data.email,
-      phone:        data.phone,
+      name: data.name,
+      businessKey: businessKey,
+      type: data.type,
+      email: data.email,
+      phone: data.phone,
       addressLine1: data.addressLine1,
-      city:         data.city,
-      state:        data.state,
-      pincode:      data.pincode,
-      country:      data.country,
-      ...(data.legalName          && { legalName: data.legalName }),
+      city: data.city,
+      state: data.state,
+      pincode: data.pincode,
+      country: data.country,
+      ...(data.legalName && { legalName: data.legalName }),
       ...(data.registrationNumber && { registrationNumber: data.registrationNumber }),
-      ...(data.website            && { website: data.website }),
-      ...(data.addressLine2       && { addressLine2: data.addressLine2 }),
-      ...(data.logoUrl            && { logoUrl: data.logoUrl }),
+      ...(data.website && { website: data.website }),
+      ...(data.addressLine2 && { addressLine2: data.addressLine2 }),
+      ...(data.logoUrl && { logoUrl: data.logoUrl }),
     }
     isEdit ? updateMutation.mutate(payload) : createMutation.mutate(payload)
   }
@@ -396,28 +436,28 @@ function BusinessFormDialog({
       <DialogContent
         className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col p-0"
         style={{
-          background: 'rgba(10,18,35,0.98)',
+          background: 'rgba(255,255,255,0.95)',
           backdropFilter: 'blur(28px)',
-          border: '1px solid rgba(255,255,255,0.09)',
-          boxShadow: '0 40px 80px rgba(0,0,0,0.6)',
+          border: '1px solid rgba(59,130,246,0.15)',
+          boxShadow: '0 40px 80px rgba(0,0,0,0.1)',
         }}
       >
         {/* Dialog Header */}
         <div
           className="flex items-center gap-3 px-6 pt-6 pb-5 flex-shrink-0"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+          style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}
         >
           <div
             className="flex h-10 w-10 items-center justify-center rounded-xl flex-shrink-0"
             style={{ background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.2)' }}
           >
-            <Building2 className="h-5 w-5 text-blue-400" />
+            <Building2 className="h-5 w-5 text-blue-600" />
           </div>
           <div>
-            <DialogTitle className="text-[17px] font-semibold text-white">
+            <DialogTitle className="text-[17px] font-semibold text-slate-900">
               {isEdit ? 'Edit Business' : 'New Business'}
             </DialogTitle>
-            <p className="text-xs mt-0.5" style={{ color: '#475569' }}>
+            <p className="text-xs mt-0.5" style={{ color: '#64748B' }}>
               {isEdit ? `Editing ${editBusiness?.name}` : 'Register a new business on the platform'}
             </p>
           </div>
@@ -433,6 +473,26 @@ function BusinessFormDialog({
               <FormField label="Business Name" required error={errors.name?.message}>
                 <GlassInput placeholder="e.g. FitLife Studios" {...register('name')} />
               </FormField>
+              <FormField label="Business Key">
+                <div className="relative">
+                  <GlassInput
+                    value={businessKey}
+                    readOnly
+                    className="font-mono pr-10 cursor-not-allowed"
+                    style={{
+                      background: 'rgba(59,130,246,0.08)',
+                      border: '1px solid rgba(59,130,246,0.2)',
+                      color: '#1e293b',
+                    }}
+                  />
+                  <span
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase tracking-widest"
+                    style={{ color: '#94a3b8' }}
+                  >
+                    Auto
+                  </span>
+                </div>
+              </FormField>
               <div className="grid grid-cols-2 gap-4">
                 <FormField label="Legal Name" error={errors.legalName?.message}>
                   <GlassInput placeholder="Official registered name" {...register('legalName')} />
@@ -447,8 +507,8 @@ function BusinessFormDialog({
                   onChange={(e) => setValue('type', e.target.value as FormData['type'], { shouldValidate: true })}
                 >
                   <option value="independent" style={{ background: '#0a1223' }}>Independent</option>
-                  <option value="chain"       style={{ background: '#0a1223' }}>Chain</option>
-                  <option value="franchise"   style={{ background: '#0a1223' }}>Franchise</option>
+                  <option value="chain" style={{ background: '#0a1223' }}>Chain</option>
+                  <option value="franchise" style={{ background: '#0a1223' }}>Franchise</option>
                 </GlassSelect>
               </FormField>
             </div>
@@ -510,13 +570,13 @@ function BusinessFormDialog({
         {/* Dialog Footer */}
         <div
           className="flex items-center justify-end gap-3 px-6 py-4 flex-shrink-0"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+          style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}
         >
           <button
             type="button"
             onClick={onClose}
             className="rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-150"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: '#94A3B8' }}
+            style={{ background: 'rgba(59,130,246,0.05)', border: '1px solid rgba(59,130,246,0.15)', color: '#64748B' }}
           >
             Cancel
           </button>
@@ -566,8 +626,8 @@ function getColumns(
               )
             }
             <div>
-              <p className="text-sm font-semibold text-white leading-tight">{b.name}</p>
-              <p className="text-xs font-mono mt-0.5" style={{ color: '#475569' }}>/{b.slug}</p>
+              <p className="text-sm font-semibold text-slate-900 leading-tight">{b.name}</p>
+              <p className="text-xs font-mono mt-0.5" style={{ color: '#94a3b8' }}>/{b.slug}</p>
             </div>
           </div>
         )
@@ -583,11 +643,11 @@ function getColumns(
         const b = row.original
         return (
           <div className="space-y-1 text-sm">
-            <div className="flex items-center gap-1.5" style={{ color: '#94A3B8' }}>
+            <div className="flex items-center gap-1.5" style={{ color: '#64748B' }}>
               <Mail className="h-3 w-3 flex-shrink-0" />
               <span className="truncate max-w-[160px]">{b.email}</span>
             </div>
-            <div className="flex items-center gap-1.5" style={{ color: '#64748B' }}>
+            <div className="flex items-center gap-1.5" style={{ color: '#94a3b8' }}>
               <Phone className="h-3 w-3 flex-shrink-0" />
               {b.phone}
             </div>
@@ -600,7 +660,7 @@ function getColumns(
       cell: ({ row }) => {
         const b = row.original
         return (
-          <div className="flex items-center gap-1.5 text-sm" style={{ color: '#94A3B8' }}>
+          <div className="flex items-center gap-1.5 text-sm" style={{ color: '#64748B' }}>
             <MapPin className="h-3 w-3 flex-shrink-0" />
             <span>{b.city}, {b.state}</span>
           </div>
@@ -636,24 +696,24 @@ function getColumns(
 
 export default function BusinessesPage() {
   const qc = useQueryClient()
-  const [search, setSearch]           = useState('')
+  const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
-  const [typeFilter, setTypeFilter]   = useState('')
-  const [page, setPage]               = useState(1)
-  const debouncedSearch               = useDebounce(search, 400)
+  const [typeFilter, setTypeFilter] = useState('')
+  const [page, setPage] = useState(1)
+  const debouncedSearch = useDebounce(search, 400)
 
-  const [formOpen, setFormOpen]         = useState(false)
+  const [formOpen, setFormOpen] = useState(false)
   const [editBusiness, setEditBusiness] = useState<Business | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Business | null>(null)
-  const [pendingId, setPendingId]       = useState<string | null>(null)
+  const [pendingId, setPendingId] = useState<string | null>(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'businesses', { search: debouncedSearch, status: statusFilter, type: typeFilter, page }],
     queryFn: () =>
       businessesApi.list({
-        search:  debouncedSearch || undefined,
-        status:  statusFilter   || undefined,
-        type:    typeFilter     || undefined,
+        search: debouncedSearch || undefined,
+        status: statusFilter || undefined,
+        type: typeFilter || undefined,
         page,
         perPage: 20,
       }),
@@ -662,9 +722,9 @@ export default function BusinessesPage() {
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: BusinessStatus }) =>
       businessesApi.updateStatus(id, status),
-    onMutate:  ({ id }) => setPendingId(id),
+    onMutate: ({ id }) => setPendingId(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin', 'businesses'] }); toast({ title: 'Status updated' }) },
-    onError:   () => toast({ title: 'Failed to update status', variant: 'destructive' }),
+    onError: () => toast({ title: 'Failed to update status', variant: 'destructive' }),
     onSettled: () => setPendingId(null),
   })
 
@@ -679,7 +739,7 @@ export default function BusinessesPage() {
   })
 
   const openCreate = () => { setEditBusiness(null); setFormOpen(true) }
-  const openEdit   = (b: Business) => { setEditBusiness(b); setFormOpen(true) }
+  const openEdit = (b: Business) => { setEditBusiness(b); setFormOpen(true) }
 
   const columns = getColumns(
     openEdit,
@@ -694,7 +754,7 @@ export default function BusinessesPage() {
       {/* ── Page Header ── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Businesses</h1>
+          <h1 className="text-3xl font-bold text-slate-900">Businesses</h1>
           <p className="mt-1 text-sm" style={{ color: '#64748B' }}>
             {data?.meta?.total ?? 0} total businesses registered on the platform
           </p>
@@ -719,16 +779,16 @@ export default function BusinessesPage() {
         <div className="relative flex-1 min-w-[220px] max-w-sm">
           <Search
             className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 pointer-events-none"
-            style={{ color: '#475569' }}
+            style={{ color: '#94a3b8' }}
           />
           <input
             placeholder="Search by name, email..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-            className="w-full rounded-xl pl-9 pr-4 py-2.5 text-sm outline-none transition-all duration-200 placeholder:text-slate-600"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: '#FFFFFF' }}
+            className="w-full rounded-xl pl-9 pr-4 py-2.5 text-sm outline-none transition-all duration-200 placeholder:text-slate-400"
+            style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(59,130,246,0.15)', color: '#1e293b' }}
             onFocus={(e) => { e.target.style.border = '1px solid rgba(59,130,246,0.5)'; e.target.style.boxShadow = '0 0 0 3px rgba(59,130,246,0.1)' }}
-            onBlur={(e)  => { e.target.style.border = '1px solid rgba(255,255,255,0.08)'; e.target.style.boxShadow = 'none' }}
+            onBlur={(e) => { e.target.style.border = '1px solid rgba(59,130,246,0.15)'; e.target.style.boxShadow = 'none' }}
           />
         </div>
 
@@ -736,28 +796,28 @@ export default function BusinessesPage() {
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
           className="rounded-xl px-3 py-2.5 text-sm outline-none cursor-pointer"
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: statusFilter ? '#FFFFFF' : '#64748B' }}
+          style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(59,130,246,0.15)', color: statusFilter ? '#1e293b' : '#64748B' }}
           onFocus={(e) => { e.target.style.border = '1px solid rgba(59,130,246,0.5)' }}
-          onBlur={(e)  => { e.target.style.border = '1px solid rgba(255,255,255,0.08)' }}
+          onBlur={(e) => { e.target.style.border = '1px solid rgba(59,130,246,0.15)' }}
         >
-          <option value=""          style={{ background: '#0a1223' }}>All Status</option>
-          <option value="pending"   style={{ background: '#0a1223' }}>Pending</option>
-          <option value="active"    style={{ background: '#0a1223' }}>Active</option>
-          <option value="suspended" style={{ background: '#0a1223' }}>Suspended</option>
+          <option value="" style={{ background: '#ffffff' }}>All Status</option>
+          <option value="pending" style={{ background: '#ffffff' }}>Pending</option>
+          <option value="active" style={{ background: '#ffffff' }}>Active</option>
+          <option value="suspended" style={{ background: '#ffffff' }}>Suspended</option>
         </select>
 
         <select
           value={typeFilter}
           onChange={(e) => { setTypeFilter(e.target.value); setPage(1) }}
           className="rounded-xl px-3 py-2.5 text-sm outline-none cursor-pointer"
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: typeFilter ? '#FFFFFF' : '#64748B' }}
+          style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(59,130,246,0.15)', color: typeFilter ? '#1e293b' : '#64748B' }}
           onFocus={(e) => { e.target.style.border = '1px solid rgba(59,130,246,0.5)' }}
-          onBlur={(e)  => { e.target.style.border = '1px solid rgba(255,255,255,0.08)' }}
+          onBlur={(e) => { e.target.style.border = '1px solid rgba(59,130,246,0.15)' }}
         >
-          <option value=""            style={{ background: '#0a1223' }}>All Types</option>
-          <option value="independent" style={{ background: '#0a1223' }}>Independent</option>
-          <option value="chain"       style={{ background: '#0a1223' }}>Chain</option>
-          <option value="franchise"   style={{ background: '#0a1223' }}>Franchise</option>
+          <option value="" style={{ background: '#ffffff' }}>All Types</option>
+          <option value="independent" style={{ background: '#ffffff' }}>Independent</option>
+          <option value="chain" style={{ background: '#ffffff' }}>Chain</option>
+          <option value="franchise" style={{ background: '#ffffff' }}>Franchise</option>
         </select>
       </div>
 

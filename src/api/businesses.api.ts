@@ -1,12 +1,13 @@
 import { get, post, put, del, getPaginated } from './client'
 
-export type BusinessType   = 'independent' | 'chain' | 'franchise'
+export type BusinessType = 'independent' | 'chain' | 'franchise'
 export type BusinessStatus = 'pending' | 'active' | 'suspended'
 
 export interface Business {
   id: string
   name: string
   slug: string
+  businessKey?: string | null
   legalName?: string | null
   registrationNumber?: string | null
   type: BusinessType
@@ -35,6 +36,7 @@ export interface BusinessFilters {
 
 export interface BusinessPayload {
   name: string
+  businessKey: string
   legalName?: string
   registrationNumber?: string
   type: BusinessType
