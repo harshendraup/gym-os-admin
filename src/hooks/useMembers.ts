@@ -43,10 +43,13 @@ export function useMemberStats(id: string) {
 
 export function useCreateMember() {
   const queryClient = useQueryClient()
-  const gymId = useAuthStore((s) => s.gymContext?.gymId)!
+  const gymId = useAuthStore((s) => s.gymContext?.gymId)
 
   return useMutation({
-    mutationFn: (data: Record<string, unknown>) => membersApi.create(gymId, data),
+    mutationFn: (data: Record<string, unknown>) => {
+      if (!gymId) throw new Error('No gym context — please log in as a gym owner or staff.')
+      return membersApi.create(gymId, data)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: memberKeys.all(gymId) })
       toast.success('Member added successfully')

@@ -31,7 +31,8 @@ export function AddMemberDialog({ open, onClose }: Props) {
   const createMember = useCreateMember()
 
   const onSubmit = async (data: FormData) => {
-    await createMember.mutateAsync(data)
+    const phone = data.phone.replace(/^\+91/, '').replace(/\D/g, '')
+    await createMember.mutateAsync({ ...data, phone })
     reset()
     onClose()
   }
@@ -46,7 +47,7 @@ export function AddMemberDialog({ open, onClose }: Props) {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="phone">Phone *</Label>
-            <Input id="phone" placeholder="+91..." {...register('phone')} />
+            <Input id="phone" placeholder="9414345844" {...register('phone')} />
             {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
           </div>
 

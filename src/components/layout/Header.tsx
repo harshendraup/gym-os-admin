@@ -1,7 +1,9 @@
-import { Bell, Search, ChevronDown } from 'lucide-react'
+import { Bell, Search, ChevronDown, LogOut } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuthStore } from '@/store/auth.store'
 import { getInitials } from '@/lib/utils'
+import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 
 interface HeaderProps {
   title?: string
@@ -9,6 +11,14 @@ interface HeaderProps {
 
 export function Header({ title }: HeaderProps) {
   const user = useAuthStore((s) => s.user) as any
+  const logout = useAuthStore((s) => s.logout)
+  const navigate = useNavigate()
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
 
   return (
     <header className="glass-header sticky top-0 z-20 flex h-16 items-center justify-between px-6 flex-shrink-0">
@@ -57,27 +67,53 @@ export function Header({ title }: HeaderProps) {
           />
         </button>
 
-        {/* User */}
-        <div
-          className="flex items-center gap-2.5 rounded-xl px-2.5 py-1.5 cursor-pointer transition-all duration-200"
-          style={{
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.08)',
-          }}
-        >
-          <Avatar className="h-6 w-6">
-            <AvatarImage src={user?.avatarUrl} />
-            <AvatarFallback
-              className="text-[10px] font-bold text-white"
-              style={{ background: 'linear-gradient(135deg, #3B82F6, #2563EB)' }}
-            >
-              {getInitials(user?.fullName ?? 'U')}
-            </AvatarFallback>
-          </Avatar>
-          <span className="text-sm font-medium text-white hidden md:block max-w-[120px] truncate">
-            {user?.fullName?.split(' ')[0] ?? 'Admin'}
-          </span>
-          <ChevronDown className="h-3 w-3 hidden md:block flex-shrink-0" style={{ color: '#475569' }} />
+        {/* User dropdown */}
+        <div className="relative">
+          <div
+            className="flex items-center gap-2.5 rounded-xl px-2.5 py-1.5 cursor-pointer transition-all duration-200"
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.08)',
+            }}
+            onClick={() => setDropdownOpen((v) => !v)}
+          >
+            <Avatar className="h-6 w-6">
+              <AvatarImage src={user?.avatarUrl} />
+              <AvatarFallback
+                className="text-[10px] font-bold text-white"
+                style={{ background: 'linear-gradient(135deg, #3B82F6, #2563EB)' }}
+              >
+                {getInitials(user?.fullName ?? 'U')}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm font-medium text-white hidden md:block max-w-[120px] truncate">
+              {user?.fullName?.split(' ')[0] ?? 'Admin'}
+            </span>
+            <ChevronDown className="h-3 w-3 hidden md:block flex-shrink-0" style={{ color: '#475569' }} />
+          </div>
+
+          {dropdownOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
+              <div
+                className="absolute right-0 top-full mt-2 w-40 rounded-xl overflow-hidden z-20"
+                style={{
+                  background: 'rgba(15,23,42,0.95)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                }}
+              >
+                <button
+                  onClick={handleLogout}
+                  className="flex w-full items-center gap-2.5 px-4 py-3 text-sm transition-colors duration-150 hover:bg-white/5"
+                  style={{ color: '#F87171' }}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </header>
