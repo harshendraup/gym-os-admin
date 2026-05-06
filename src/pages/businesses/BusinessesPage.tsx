@@ -1,12 +1,13 @@
-import { useState, useRef, useEffect, forwardRef } from 'react'
+import { useState, useEffect, useRef, forwardRef } from 'react'
 import { createPortal } from 'react-dom'
+import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { type ColumnDef } from '@tanstack/react-table'
 import {
-  Building2, Plus, Search, MoreHorizontal, Edit2, Trash2,
+  Building2, Plus, Search, Eye, MoreVertical, Edit2, Trash2,
   CheckCircle2, XCircle, Clock, Phone, MapPin, Mail,
   AlertTriangle, RefreshCw,
 } from 'lucide-react'
@@ -79,10 +80,7 @@ function ActionMenu({
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       const target = e.target as Node
-      const insideTrigger = !!buttonRef.current?.contains(target)
-      const insideAnchor = !!ref.current?.contains(target)
-      const insideMenu = !!menuRef.current?.contains(target)
-      if (!insideTrigger && !insideAnchor && !insideMenu) {
+      if (!buttonRef.current?.contains(target) && !ref.current?.contains(target) && !menuRef.current?.contains(target)) {
         setOpen(false)
       }
     }
@@ -93,10 +91,7 @@ function ActionMenu({
   useEffect(() => {
     if (open && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect()
-      setPosition({
-        top: rect.bottom + 8,
-        right: window.innerWidth - rect.right,
-      })
+      setPosition({ top: rect.bottom + 8, right: window.innerWidth - rect.right })
     }
   }, [open])
 
@@ -121,7 +116,7 @@ function ActionMenu({
       >
         {isPending
           ? <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-          : <MoreHorizontal className="h-4 w-4" />
+          : <MoreVertical className="h-4 w-4" />
         }
       </button>
 
@@ -214,13 +209,11 @@ function DeleteDialog({
             <DialogTitle className="text-slate-900">Delete Business</DialogTitle>
           </div>
         </DialogHeader>
-
         <p className="text-sm leading-relaxed" style={{ color: '#64748B' }}>
           Are you sure you want to delete{' '}
           <span className="font-semibold text-slate-900">{business?.name}</span>?
           This is a soft delete and can be reviewed later.
         </p>
-
         <div className="flex justify-end gap-2.5 mt-2">
           <button
             onClick={onClose}
@@ -362,6 +355,7 @@ function BusinessFormDialog({
   const isEdit = !!editBusiness
 
   const [businessKey, setBusinessKey] = useState('')
+  const [showKeyWarning, setShowKeyWarning] = useState(false)
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(businessSchema),
@@ -478,19 +472,38 @@ function BusinessFormDialog({
                   <GlassInput
                     value={businessKey}
                     readOnly
-                    className="font-mono pr-10 cursor-not-allowed"
+                    className="font-mono cursor-not-allowed"
                     style={{
                       background: 'rgba(59,130,246,0.08)',
                       border: '1px solid rgba(59,130,246,0.2)',
                       color: '#1e293b',
+                      paddingRight: isEdit && businessKey ? '110px' : '48px',
                     }}
                   />
-                  <span
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase tracking-widest"
-                    style={{ color: '#94a3b8' }}
-                  >
-                    Auto
-                  </span>
+                  {isEdit && businessKey ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowKeyWarning(true)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all duration-150"
+                      style={{
+                        background: 'rgba(220,38,38,0.08)',
+                        border: '1px solid rgba(220,38,38,0.25)',
+                        color: '#DC2626',
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(220,38,38,0.15)' }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(220,38,38,0.08)' }}
+                    >
+                      <RefreshCw className="h-3 w-3" />
+                      Regenerate
+                    </button>
+                  ) : (
+                    <span
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase tracking-widest"
+                      style={{ color: '#94a3b8' }}
+                    >
+                      Auto
+                    </span>
+                  )}
                 </div>
               </FormField>
               <div className="grid grid-cols-2 gap-4">
@@ -594,6 +607,55 @@ function BusinessFormDialog({
           </button>
         </div>
       </DialogContent>
+
+      {/* ── Key Regenerate Warning ── */}
+      <Dialog open={showKeyWarning} onOpenChange={(o) => !o && setShowKeyWarning(false)}>
+        <DialogContent
+          className="sm:max-w-sm"
+          style={{
+            background: 'rgba(255,255,255,0.97)',
+            backdropFilter: 'blur(24px)',
+            border: '1px solid rgba(220,38,38,0.2)',
+            boxShadow: '0 32px 64px rgba(0,0,0,0.12)',
+          }}
+        >
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-1">
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-xl flex-shrink-0"
+                style={{ background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.2)' }}
+              >
+                <AlertTriangle className="h-5 w-5" style={{ color: '#DC2626' }} />
+              </div>
+              <DialogTitle className="text-slate-900">Regenerate Business Key?</DialogTitle>
+            </div>
+          </DialogHeader>
+          <p className="text-sm leading-relaxed" style={{ color: '#64748B' }}>
+            This will replace the current business key with a new one.
+            Any integrations or API clients using the old key will <span className="font-semibold text-red-600">stop working immediately</span>.
+          </p>
+          <p className="text-xs mt-1 font-medium" style={{ color: '#94a3b8' }}>
+            The new key will only be saved when you click Save Changes.
+          </p>
+          <div className="flex justify-end gap-2.5 mt-2">
+            <button
+              onClick={() => setShowKeyWarning(false)}
+              className="rounded-xl px-4 py-2 text-sm font-medium transition-all duration-150"
+              style={{ background: 'rgba(59,130,246,0.05)', border: '1px solid rgba(59,130,246,0.15)', color: '#64748B' }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => { setBusinessKey(generateBusinessKey()); setShowKeyWarning(false) }}
+              className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white transition-all duration-150"
+              style={{ background: 'rgba(220,38,38,0.85)', border: '1px solid rgba(220,38,38,0.4)' }}
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Yes, Regenerate
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   )
 }
@@ -601,6 +663,7 @@ function BusinessFormDialog({
 // ─── Table Columns ────────────────────────────────────────────────────────────
 
 function getColumns(
+  onView: (b: Business) => void,
   onEdit: (b: Business) => void,
   onDelete: (b: Business) => void,
   onStatusChange: (b: Business, s: BusinessStatus) => void,
@@ -677,7 +740,21 @@ function getColumns(
       cell: ({ row }) => {
         const b = row.original
         return (
-          <div className="flex justify-end">
+          <div className="flex items-center justify-end gap-2">
+            <button
+              onClick={() => onView(b)}
+              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150"
+              style={{
+                background: 'rgba(59,130,246,0.08)',
+                border: '1px solid rgba(59,130,246,0.2)',
+                color: '#2563EB',
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(59,130,246,0.15)' }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(59,130,246,0.08)' }}
+            >
+              <Eye className="h-3.5 w-3.5" />
+              View
+            </button>
             <ActionMenu
               business={b}
               onEdit={() => onEdit(b)}
@@ -696,6 +773,7 @@ function getColumns(
 
 export default function BusinessesPage() {
   const qc = useQueryClient()
+  const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
@@ -738,12 +816,10 @@ export default function BusinessesPage() {
     onError: () => toast({ title: 'Failed to delete business', variant: 'destructive' }),
   })
 
-  const openCreate = () => { setEditBusiness(null); setFormOpen(true) }
-  const openEdit = (b: Business) => { setEditBusiness(b); setFormOpen(true) }
-
   const columns = getColumns(
-    openEdit,
-    setDeleteTarget,
+    (b) => navigate(`/businesses/${b.id}/members`),
+    (b) => { setEditBusiness(b); setFormOpen(true) },
+    (b) => setDeleteTarget(b),
     (b, s) => statusMutation.mutate({ id: b.id, status: s }),
     pendingId,
   )
@@ -760,7 +836,7 @@ export default function BusinessesPage() {
           </p>
         </div>
         <button
-          onClick={openCreate}
+          onClick={() => { setEditBusiness(null); setFormOpen(true) }}
           className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-[15px] font-semibold text-white transition-all duration-200"
           style={{
             background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
@@ -840,7 +916,6 @@ export default function BusinessesPage() {
         onClose={() => { setFormOpen(false); setEditBusiness(null) }}
         editBusiness={editBusiness}
       />
-
       <DeleteDialog
         open={!!deleteTarget}
         business={deleteTarget}
