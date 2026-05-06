@@ -1,4 +1,5 @@
 import { get, post, put, del, getPaginated } from './client'
+import type { Member } from './members.api'
 
 export type BusinessType = 'independent' | 'chain' | 'franchise'
 export type BusinessStatus = 'pending' | 'active' | 'suspended'
@@ -70,4 +71,7 @@ export const businessesApi = {
 
   delete: (id: string) =>
     del<{ message: string }>(`/admin/businesses/${id}`),
+
+  members: (id: string, filters: { search?: string; status?: string; page?: number } = {}) =>
+    getPaginated<Member>(`/admin/businesses/${id}/members`, filters as Record<string, unknown>),
 }
