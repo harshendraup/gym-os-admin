@@ -1,4 +1,4 @@
-import { get, post, put, del, getPaginated } from './client'
+import { get, put, del, getPaginated, apiClient } from './client'
 import type { Member } from './members.api'
 
 export type BusinessType = 'independent' | 'chain' | 'franchise'
@@ -60,11 +60,25 @@ export const businessesApi = {
   get: (id: string) =>
     get<Business>(`/admin/businesses/${id}`),
 
-  create: (data: BusinessPayload) =>
-    post<Business>('/admin/businesses', data),
+  create: async (data: BusinessPayload | FormData) => {
+    const isFormData = data instanceof FormData
+    const res = await apiClient.post('/admin/businesses', data, {
+      headers: isFormData
+        ? { 'Content-Type': 'multipart/form-data' }
+        : { 'Content-Type': 'application/json' },
+    })
+    return res.data.data as Business
+  },
 
-  update: (id: string, data: Partial<BusinessPayload>) =>
-    put<Business>(`/admin/businesses/${id}`, data),
+  update: async (id: string, data: Partial<BusinessPayload> | FormData) => {
+    const isFormData = data instanceof FormData
+    const res = await apiClient.put(`/admin/businesses/${id}`, data, {
+      headers: isFormData
+        ? { 'Content-Type': 'multipart/form-data' }
+        : { 'Content-Type': 'application/json' },
+    })
+    return res.data.data as Business
+  },
 
   updateStatus: (id: string, status: BusinessStatus) =>
     put<Business>(`/admin/businesses/${id}/status`, { status }),

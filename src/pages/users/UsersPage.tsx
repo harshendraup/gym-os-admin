@@ -168,7 +168,7 @@ function EditUserDialog({
             <Input
               value={form.name}
               onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-              placeholder="Rahul yadav"
+              placeholder="Your name"
             />
           </div>
 
@@ -178,7 +178,7 @@ function EditUserDialog({
               type="email"
               value={form.email}
               onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
-              placeholder="rahul@example.com"
+              placeholder="your_name1@gmail.com"
             />
           </div>
 
@@ -187,7 +187,7 @@ function EditUserDialog({
             <Input
               value={form.phone}
               onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
-              placeholder="+919666543210"
+              placeholder="+91"
             />
           </div>
 

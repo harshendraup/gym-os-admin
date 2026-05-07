@@ -263,9 +263,9 @@ const businessSchema = z.object({
   state: z.string().min(1, 'State is required'),
   pincode: z.string().min(4, 'Pincode is required'),
   country: z.string().min(1, 'Country is required'),
-  logoUrl: z.string().url('Enter a valid URL').optional().or(z.literal('')),
+  logoUrl: z.string().optional().or(z.literal('')),
 })
-type FormData = z.infer<typeof businessSchema>
+type BusinessFormValues = z.infer<typeof businessSchema>
 
 function SectionLabel({ label }: { label: string }) {
   return (
@@ -356,8 +356,11 @@ export function BusinessFormDialog({
 
   const [businessKey, setBusinessKey] = useState('')
   const [showKeyWarning, setShowKeyWarning] = useState(false)
+  const [logoPreview, setLogoPreview] = useState('')
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const logoInputRef = useRef<HTMLInputElement>(null)
 
-  const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<BusinessFormValues>({
     resolver: zodResolver(businessSchema),
     defaultValues: { country: 'India', type: 'independent' },
   })
@@ -381,22 +384,57 @@ export function BusinessFormDialog({
         country: editBusiness.country,
         logoUrl: editBusiness.logoUrl ?? '',
       })
+      setLogoPreview(editBusiness.logoUrl ?? '')
+      setLogoFile(null)
     } else if (open && !editBusiness) {
       setBusinessKey(generateBusinessKey())
-      reset({ country: 'India', type: 'independent' })
+      reset({ country: 'India', type: 'independent', logoUrl: '' })
+      setLogoPreview('')
+      setLogoFile(null)
     } else if (!open) {
-      reset({ country: 'India', type: 'independent' })
+      reset({ country: 'India', type: 'independent', logoUrl: '' })
+      setLogoPreview('')
+      setLogoFile(null)
     }
   }, [open, editBusiness, reset])
 
+  const onLogoSelect: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Please select an image file', variant: 'destructive' })
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = String(reader.result ?? '')
+      setLogoPreview(result)
+      setLogoFile(file)
+      setValue('logoUrl', '', { shouldDirty: true, shouldValidate: true })
+    }
+    reader.onerror = () => {
+      toast({ title: 'Failed to read selected image', variant: 'destructive' })
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const clearLogo = () => {
+    setLogoPreview('')
+    setLogoFile(null)
+    setValue('logoUrl', '', { shouldDirty: true, shouldValidate: true })
+    if (logoInputRef.current) logoInputRef.current.value = ''
+  }
+
   const createMutation = useMutation({
-    mutationFn: (d: BusinessPayload) => businessesApi.create(d),
+    mutationFn: (d: globalThis.FormData) => businessesApi.create(d),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin', 'businesses'] }); toast({ title: 'Business created' }); onClose() },
     onError: () => toast({ title: 'Failed to create business', variant: 'destructive' }),
   })
 
   const updateMutation = useMutation({
-    mutationFn: (d: Partial<BusinessPayload>) => businessesApi.update(editBusiness!.id, d),
+    mutationFn: (d: globalThis.FormData) => businessesApi.update(editBusiness!.id, d),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin', 'businesses'] }); toast({ title: 'Business updated' }); onClose() },
     onError: () => toast({ title: 'Failed to update business', variant: 'destructive' }),
   })
@@ -404,7 +442,7 @@ export function BusinessFormDialog({
   const isPending = createMutation.isPending || updateMutation.isPending
   const typeValue = watch('type')
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = (data: BusinessFormValues) => {
     const payload: BusinessPayload = {
       name: data.name,
       businessKey: businessKey,
@@ -422,7 +460,22 @@ export function BusinessFormDialog({
       ...(data.addressLine2 && { addressLine2: data.addressLine2 }),
       ...(data.logoUrl && { logoUrl: data.logoUrl }),
     }
-    isEdit ? updateMutation.mutate(payload) : createMutation.mutate(payload)
+
+    const multipart = new FormData()
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        multipart.append(key, String(value))
+      }
+    })
+
+    if (logoFile) {
+      // Send common file field names to match backend multer config variants.
+      multipart.append('logo', logoFile)
+      multipart.append('logoFile', logoFile)
+      multipart.append('image', logoFile)
+    }
+
+    isEdit ? updateMutation.mutate(multipart) : createMutation.mutate(multipart)
   }
 
   return (
@@ -517,7 +570,7 @@ export function BusinessFormDialog({
               <FormField label="Business Type" required error={errors.type?.message}>
                 <GlassSelect
                   value={typeValue}
-                  onChange={(e) => setValue('type', e.target.value as FormData['type'], { shouldValidate: true })}
+                  onChange={(e) => setValue('type', e.target.value as BusinessFormValues['type'], { shouldValidate: true })}
                 >
                   <option value="independent" style={{ background: '#0a1223' }}>Independent</option>
                   <option value="chain" style={{ background: '#0a1223' }}>Chain</option>
@@ -572,8 +625,49 @@ export function BusinessFormDialog({
             {/* ── Branding ── */}
             <div className="space-y-4">
               <SectionLabel label="Branding" />
-              <FormField label="Logo URL" error={errors.logoUrl?.message}>
-                <GlassInput type="url" placeholder="https://cdn.example.com/logo.png" {...register('logoUrl')} />
+              <FormField label="Business Logo" error={errors.logoUrl?.message}>
+                <input type="hidden" {...register('logoUrl')} />
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => logoInputRef.current?.click()}
+                      className="rounded-xl px-4 py-2 text-sm font-medium transition-all duration-150"
+                      style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', color: '#2563EB' }}
+                    >
+                      Select Image
+                    </button>
+                    {logoPreview && (
+                      <button
+                        type="button"
+                        onClick={clearLogo}
+                        className="rounded-xl px-4 py-2 text-sm font-medium transition-all duration-150"
+                        style={{ background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.2)', color: '#DC2626' }}
+                      >
+                        Remove
+                      </button>
+                    )}
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={onLogoSelect}
+                    />
+                  </div>
+                  {logoPreview ? (
+                    <div
+                      className="inline-flex h-24 w-24 items-center justify-center overflow-hidden rounded-xl"
+                      style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(59,130,246,0.15)' }}
+                    >
+                      <img src={logoPreview} alt="Logo preview" className="h-full w-full object-contain" />
+                    </div>
+                  ) : (
+                    <p className="text-xs" style={{ color: '#94a3b8' }}>
+                      No image selected.
+                    </p>
+                  )}
+                </div>
               </FormField>
             </div>
 
@@ -678,7 +772,7 @@ function getColumns(
         return (
           <div className="flex items-center gap-3">
             {b.logoUrl
-              ? <img src={b.logoUrl} alt={b.name} className="h-9 w-9 rounded-xl object-cover flex-shrink-0" />
+              ? <img src={b.logoUrl} alt={b.name} className="h-12 w-12 rounded-xl object-cover flex-shrink-0" />
               : (
                 <div
                   className="flex h-9 w-9 items-center justify-center rounded-xl flex-shrink-0"

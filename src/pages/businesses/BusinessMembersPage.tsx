@@ -7,22 +7,56 @@ import {
   ArrowLeft, Search, Mail, Phone, Globe, MapPin, Building2,
   CheckCircle2, Clock, XCircle, Hash, Tag, Key, Eye, EyeOff,
   RefreshCw, AlertTriangle, MoreVertical, Edit2, Trash2,
+  Copy,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import DataTable from '@/components/data-table/DataTable'
 import { MemberStatusBadge } from '@/components/members/MemberStatusBadge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { useDebounce } from '@/hooks/useDebounce'
 import { businessesApi, type Business, type BusinessStatus } from '@/api/businesses.api'
+import { api } from '@/api/client'
 import { toast } from '@/hooks/use-toast'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { BusinessFormDialog } from './BusinessesPage'
 import type { Member } from '@/api/members.api'
+import { useAuthStore } from '@/store/auth.store'
 
 function generateBusinessKey(): string {
   const ts = Date.now().toString(36).toUpperCase()
   const rand = Math.random().toString(36).substring(2, 8).toUpperCase()
   return `BIZ-${ts}-${rand}`
+}
+
+async function copyText(value: string, label: string) {
+  try {
+    await navigator.clipboard.writeText(value)
+    toast({ title: `${label} copied` })
+  } catch {
+    toast({
+      title: `Failed to copy ${label.toLowerCase()}`,
+      variant: 'destructive',
+    })
+  }
 }
 
 function BusinessStatusBadge({ status }: { status: BusinessStatus }) {
@@ -295,12 +329,44 @@ const columns: ColumnDef<Member>[] = [
   },
 ]
 
+type BusinessUser = {
+  id: string
+  full_name?: string
+  fullName?: string
+  phone?: string | null
+  email?: string | null
+  role?: string
+  business_id?: string | null
+  businessId?: string | null
+  is_active?: boolean
+  isActive?: boolean
+}
+
+type UsersResponse = {
+  meta?: {
+    total: number
+  }
+  data: BusinessUser[]
+}
+
+type CreateBusinessUserPayload = {
+  business_id: string
+  name: string
+  email: string
+  phone: string
+  password: string
+  role: string
+}
+
+const BUSINESS_USER_ROLE_OPTIONS = ['admin', 'trainer', 'gym_owner', 'member']
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function BusinessMembersPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const isSuperAdmin = useAuthStore((s) => s.gymContext?.role === 'super_admin')
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
   const [page, setPage] = useState(1)
@@ -308,7 +374,20 @@ export default function BusinessMembersPage() {
   const [showKeyWarning, setShowKeyWarning] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [userFormOpen, setUserFormOpen] = useState(false)
+  const [userForm, setUserForm] = useState<CreateBusinessUserPayload>({
+    business_id: id ?? '',
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+    role: 'admin',
+  })
   const debouncedSearch = useDebounce(search, 400)
+
+  useEffect(() => {
+    setUserForm((prev) => ({ ...prev, business_id: id ?? '' }))
+  }, [id])
 
   const { data: business } = useQuery({
     queryKey: ['admin', 'businesses', id],
@@ -353,6 +432,49 @@ export default function BusinessMembersPage() {
       }),
     enabled: !!id,
   })
+
+  const { data: usersData, isLoading: usersLoading } = useQuery({
+    queryKey: ['admin', 'users', id],
+    queryFn: () => api.get<UsersResponse>('/admin/users'),
+    enabled: !!id,
+  })
+
+  const businessUsers = (usersData?.data ?? []).filter((u) => (u.business_id ?? u.businessId) === id)
+
+  const addBusinessUserMutation = useMutation({
+    mutationFn: (payload: CreateBusinessUserPayload) => {
+      return api.post('/admin/business-admins', payload)
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'users'] })
+      qc.invalidateQueries({ queryKey: ['admin', 'users', id] })
+      toast({ title: 'Business user added' })
+      setUserForm({
+        business_id: id ?? '',
+        name: '',
+        email: '',
+        phone: '',
+        password: '',
+        role: 'admin',
+      })
+      setUserFormOpen(false)
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Failed to add user',
+        description: error?.response?.data?.error?.message ?? 'Please check details and try again.',
+        variant: 'destructive',
+      })
+    },
+  })
+
+  const canSubmitBusinessUser =
+    !!userForm.business_id &&
+    !!userForm.name &&
+    !!userForm.email &&
+    !!userForm.phone &&
+    !!userForm.password &&
+    !!userForm.role
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -450,9 +572,20 @@ export default function BusinessMembersPage() {
                 </div>
                 <div>
                   <p className="text-xs font-medium" style={{ color: '#94a3b8' }}>Email</p>
-                  <a href={`mailto:${business.email}`} className="text-sm text-slate-700 hover:text-blue-600 transition-colors">
-                    {business.email}
-                  </a>
+                  <div className="flex items-center gap-2">
+                    <a href={`mailto:${business.email}`} className="text-sm text-slate-700 hover:text-blue-600 transition-colors">
+                      {business.email}
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => copyText(business.email, 'Email')}
+                      className="inline-flex h-6 w-6 items-center justify-center rounded-md transition-colors hover:bg-blue-50"
+                      title="Copy email"
+                      aria-label="Copy email"
+                    >
+                      <Copy className="h-3.5 w-3.5 text-slate-500" />
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -465,7 +598,18 @@ export default function BusinessMembersPage() {
                 </div>
                 <div>
                   <p className="text-xs font-medium" style={{ color: '#94a3b8' }}>Phone</p>
-                  <p className="text-sm text-slate-700">{business.phone}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-slate-700">{business.phone}</p>
+                    <button
+                      type="button"
+                      onClick={() => copyText(business.phone, 'Phone')}
+                      className="inline-flex h-6 w-6 items-center justify-center rounded-md transition-colors hover:bg-blue-50"
+                      title="Copy phone"
+                      aria-label="Copy phone"
+                    >
+                      <Copy className="h-3.5 w-3.5 text-slate-500" />
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -597,18 +741,121 @@ export default function BusinessMembersPage() {
         </select>
       </div>
 
-      {/* Table */}
-      <DataTable
-        columns={columns}
-        data={data?.data ?? []}
-        isLoading={isLoading}
-        pagination={{
-          page,
-          pageCount: data?.meta?.lastPage ?? 1,
-          onPageChange: setPage,
+      {/* Business Users */}
+      <div
+        className="rounded-2xl p-5 space-y-4"
+        style={{
+          background: 'linear-gradient(135deg, rgba(239,246,255,0.9), rgba(255,255,255,0.86))',
+          border: '1px solid rgba(59,130,246,0.2)',
+          backdropFilter: 'blur(10px)',
+          boxShadow: '0 10px 24px rgba(37,99,235,0.06)',
         }}
-        emptyMessage="No members found for this business."
-      />
+      >
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">Business Users</h2>
+            <p className="text-sm" style={{ color: '#64748B' }}>
+              Users mapped to this business with role-based access.
+            </p>
+          </div>
+          {isSuperAdmin && (
+            <Button onClick={() => setUserFormOpen(true)}>
+              Add Business User
+            </Button>
+          )}
+        </div>
+
+        <div
+          className="rounded-lg border bg-white/80"
+          style={{ borderColor: 'rgba(59,130,246,0.16)' }}
+        >
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>User ID</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {usersLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-16 text-center text-slate-500">
+                    Loading users...
+                  </TableCell>
+                </TableRow>
+              ) : businessUsers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-16 text-center text-slate-500">
+                    No users added for this business.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                businessUsers.map((user) => {
+                  const name = user.full_name ?? user.fullName ?? '—'
+                  const isActive = user.is_active ?? user.isActive
+                  return (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-medium">{name}</TableCell>
+                      <TableCell>{user.email ?? '—'}</TableCell>
+                      <TableCell>{user.phone ?? '—'}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{user.role ?? '—'}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={isActive ? 'default' : 'secondary'}>
+                          {isActive ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs text-slate-500">{user.id}</TableCell>
+                    </TableRow>
+                  )
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {/* Members Section */}
+      <div
+        className="rounded-2xl p-5 space-y-4"
+        style={{
+          background: 'linear-gradient(135deg, rgba(236,253,245,0.82), rgba(255,255,255,0.88))',
+          border: '1px solid rgba(16,185,129,0.24)',
+          backdropFilter: 'blur(10px)',
+          boxShadow: '0 10px 24px rgba(5,150,105,0.06)',
+        }}
+      >
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">Business Members</h2>
+            <p className="text-sm" style={{ color: '#64748B' }}>
+              Membership list and current plan status for this business.
+            </p>
+          </div>
+        </div>
+
+        <div
+          className="rounded-lg border bg-white/80"
+          style={{ borderColor: 'rgba(16,185,129,0.2)' }}
+        >
+          <DataTable
+            columns={columns}
+            data={data?.data ?? []}
+            isLoading={isLoading}
+            pagination={{
+              page,
+              pageCount: data?.meta?.lastPage ?? 1,
+              onPageChange: setPage,
+            }}
+            emptyMessage="No members found for this business."
+          />
+        </div>
+      </div>
 
       {/* Key Regenerate Warning Dialog */}
       <Dialog open={showKeyWarning} onOpenChange={(o) => !o && setShowKeyWarning(false)}>
@@ -676,6 +923,81 @@ export default function BusinessMembersPage() {
         onConfirm={() => deleteMutation.mutate()}
         isPending={deleteMutation.isPending}
       />
+
+      <Dialog open={userFormOpen} onOpenChange={setUserFormOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Add Business User</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>Business ID</Label>
+              <Input value={userForm.business_id} disabled />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>Name</Label>
+              <Input
+                value={userForm.name}
+                onChange={(e) => setUserForm((prev) => ({ ...prev, name: e.target.value }))}
+                placeholder="Enter name"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Email</Label>
+              <Input
+                type="email"
+                value={userForm.email}
+                onChange={(e) => setUserForm((prev) => ({ ...prev, email: e.target.value }))}
+                placeholder="your_name1@gmail.com"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Phone</Label>
+              <Input
+                value={userForm.phone}
+                onChange={(e) => setUserForm((prev) => ({ ...prev, phone: e.target.value }))}
+                placeholder="+91"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Password</Label>
+              <Input
+                type="password"
+                value={userForm.password}
+                onChange={(e) => setUserForm((prev) => ({ ...prev, password: e.target.value }))}
+                placeholder="Enter password"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Role</Label>
+              <Select
+                value={userForm.role}
+                onValueChange={(value) => setUserForm((prev) => ({ ...prev, role: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {BUSINESS_USER_ROLE_OPTIONS.map((role) => (
+                    <SelectItem key={role} value={role}>{role}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="sm:col-span-2 flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setUserFormOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => addBusinessUserMutation.mutate(userForm)}
+                disabled={!canSubmitBusinessUser || addBusinessUserMutation.isPending}
+              >
+                {addBusinessUserMutation.isPending ? 'Adding...' : 'Add User'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
