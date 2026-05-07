@@ -20,6 +20,7 @@ const DashboardPage = lazy(() => import('@/pages/dashboard/DashboardPage'))
 const MembersPage = lazy(() => import('@/pages/members/MembersPage'))
 const MemberDetailPage = lazy(() => import('@/pages/members/MemberDetailPage'))
 const MembershipsPage = lazy(() => import('@/pages/memberships/MembershipsPage'))
+const UserPage = lazy(() => import('@/pages/users/UsersPage'))
 const TrainersPage = lazy(() => import('@/pages/trainers/TrainersPage'))
 const PaymentsPage = lazy(() => import('@/pages/payments/PaymentsPage'))
 const AttendancePage = lazy(() => import('@/pages/attendance/AttendancePage'))
@@ -56,6 +57,14 @@ export const router = createBrowserRouter([
       { path: 'members/:id', element: wrap(MemberDetailPage) },
 
       { path: 'memberships', element: wrap(MembershipsPage) },
+      {
+        path: 'users',
+        element: (
+          <RoleGuard allowed={['super_admin']}>
+            {wrap(UserPage)}
+          </RoleGuard>
+        ),
+      },
 
       { path: 'trainers', element: wrap(TrainersPage) },
 

@@ -342,7 +342,7 @@ function FormField({ label, required, error, children }: {
   )
 }
 
-function BusinessFormDialog({
+export function BusinessFormDialog({
   open,
   onClose,
   editBusiness,
