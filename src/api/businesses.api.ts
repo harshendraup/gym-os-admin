@@ -53,6 +53,47 @@ export interface BusinessPayload {
   logoUrl?: string
 }
 
+export interface BusinessOverviewSummary {
+  totalUsers: number
+  totalGyms: number
+  totalGymMembers: number
+  roleCounts: Record<string, { total: number; active: number; inactive: number }>
+  memberStatusCounts: Record<string, number>
+}
+
+export interface BusinessOverviewUser {
+  id: string
+  phone: string | null
+  email: string | null
+  fullName: string
+  isActive: boolean
+  lastLoginAt: string | null
+  businessId: string | null
+  role: string
+}
+
+export interface BusinessOverviewData {
+  business: Business & {
+    createdBy: string
+    description?: string | null
+    metadata?: Record<string, unknown>
+    creator?: {
+      id: string
+      fullName: string
+      email: string | null
+      role: string
+    }
+  }
+  summary: BusinessOverviewSummary
+  linkedUsers: {
+    admins: BusinessOverviewUser[]
+    managers: BusinessOverviewUser[]
+    trainers: BusinessOverviewUser[]
+    members: BusinessOverviewUser[]
+  }
+  gyms: Array<{ id: string; name: string }>
+}
+
 export const businessesApi = {
   list: (filters: BusinessFilters = {}) =>
     getPaginated<Business>('/admin/businesses', filters as Record<string, unknown>),
@@ -88,4 +129,7 @@ export const businessesApi = {
 
   members: (id: string, filters: { search?: string; status?: string; page?: number } = {}) =>
     getPaginated<Member>(`/admin/businesses/${id}/members`, filters as Record<string, unknown>),
+
+  overview: (id: string) =>
+    get<BusinessOverviewData>(`/admin/businesses/${id}/overview`),
 }
