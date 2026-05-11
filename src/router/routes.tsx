@@ -25,6 +25,7 @@ const TrainersPage = lazy(() => import('@/pages/trainers/TrainersPage'))
 const PaymentsPage = lazy(() => import('@/pages/payments/PaymentsPage'))
 const AttendancePage = lazy(() => import('@/pages/attendance/AttendancePage'))
 const WorkoutsPage = lazy(() => import('@/pages/workouts/WorkoutsPage'))
+const WorkoutModelsPage = lazy(() => import('@/pages/workouts/WorkoutModelsPage'))
 const DietPlansPage = lazy(() => import('@/pages/workouts/DietPlansPage'))
 const AnalyticsPage = lazy(() => import('@/pages/analytics/AnalyticsPage'))
 const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'))
@@ -60,7 +61,7 @@ export const router = createBrowserRouter([
       {
         path: 'users',
         element: (
-          <RoleGuard allowed={['super_admin']}>
+          <RoleGuard allowed={['admin']}>
             {wrap(UserPage)}
           </RoleGuard>
         ),
@@ -73,6 +74,14 @@ export const router = createBrowserRouter([
       { path: 'attendance', element: wrap(AttendancePage) },
 
       { path: 'workouts', element: wrap(WorkoutsPage) },
+      {
+        path: 'workout-models',
+        element: (
+          <RoleGuard allowed={['admin']}>
+            {wrap(WorkoutModelsPage)}
+          </RoleGuard>
+        ),
+      },
       { path: 'diet', element: wrap(DietPlansPage) },
 
       { path: 'analytics', element: wrap(AnalyticsPage) },

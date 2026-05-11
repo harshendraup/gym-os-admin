@@ -11,11 +11,12 @@ import {
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['*'] },
   { to: '/members', label: 'Members', icon: Users, roles: ['gym_owner', 'staff'] },
-  { to: '/memberships', label: 'Memberships', icon: Layers, roles: ['*'] },
-  { to: '/users', label: 'Users', icon: Users, roles: ['super_admin'] },
-  { to: '/trainers', label: 'Trainers', icon: UserCog, roles: ['gym_owner', 'staff'] },
+  { to: '/memberships', label: 'Subscription', icon: Layers, roles: ['*'] },
+  { to: '/users', label: 'Users', icon: Users, roles: ['admin'] },
+  { to: '/trainers', label: 'Trainner', icon: UserCog, roles: ['admin'] },
   { to: '/payments', label: 'Payments', icon: CreditCard, roles: ['gym_owner', 'staff'] },
   { to: '/attendance', label: 'Attendance', icon: CalendarCheck, roles: ['*'] },
+  { to: '/workout-models', label: 'Workout Models', icon: Dumbbell, roles: ['admin'] },
   { to: '/workouts', label: 'Workouts', icon: Dumbbell, roles: ['*'] },
   { to: '/diet', label: 'Diet Plans', icon: Salad, roles: ['*'] },
   { to: '/analytics', label: 'Analytics', icon: BarChart3, roles: ['gym_owner', 'staff'] },
@@ -27,7 +28,9 @@ const navItems = [
 export default function Sidebar() {
   const branding = useGymStore((s) => s.branding)
   const gymId = useGymStore((s) => s.gymId)
-  const role = useAuthStore(selectRole)
+  const contextRole = useAuthStore(selectRole)
+  const userRole = useAuthStore((s) => (s.user as any)?.role ?? '')
+  const role = (contextRole || userRole || '').toLowerCase()
 
   const visibleItems = navItems.filter(
     (item) => item.roles.includes('*') || item.roles.includes(role ?? '')
@@ -67,7 +70,7 @@ export default function Sidebar() {
           <div className="flex items-center gap-1.5 mt-0.5">
             <div className="h-1.5 w-1.5 rounded-full bg-green-500 shadow-sm" />
             <p className="text-xs capitalize" style={{ color: '#64748B' }}>
-              {role?.replace('_', ' ') ?? 'admin'}
+              {(role || 'admin').replace('_', ' ')}
             </p>
           </div>
         </div>
