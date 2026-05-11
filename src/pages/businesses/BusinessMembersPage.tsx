@@ -18,13 +18,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
   Table,
   TableBody,
   TableCell,
@@ -358,8 +351,6 @@ type CreateBusinessUserPayload = {
   role: string
 }
 
-const BUSINESS_USER_ROLE_OPTIONS = ['admin', 'trainer', 'gym_owner', 'member']
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function BusinessMembersPage() {
@@ -381,7 +372,7 @@ export default function BusinessMembersPage() {
     email: '',
     phone: '',
     password: '',
-    role: 'admin',
+    role: '',
   })
   const debouncedSearch = useDebounce(search, 400)
 
@@ -455,7 +446,7 @@ export default function BusinessMembersPage() {
         email: '',
         phone: '',
         password: '',
-        role: 'admin',
+        role: '',
       })
       setUserFormOpen(false)
     },
@@ -470,11 +461,11 @@ export default function BusinessMembersPage() {
 
   const canSubmitBusinessUser =
     !!userForm.business_id &&
-    !!userForm.name &&
-    !!userForm.email &&
-    !!userForm.phone &&
-    !!userForm.password &&
-    !!userForm.role
+    !!userForm.name.trim() &&
+    !!userForm.email.trim() &&
+    !!userForm.phone.trim() &&
+    !!userForm.password.trim() &&
+    !!userForm.role.trim()
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -970,19 +961,11 @@ export default function BusinessMembersPage() {
             </div>
             <div className="space-y-1.5">
               <Label>Role</Label>
-              <Select
+              <Input
                 value={userForm.role}
-                onValueChange={(value) => setUserForm((prev) => ({ ...prev, role: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {BUSINESS_USER_ROLE_OPTIONS.map((role) => (
-                    <SelectItem key={role} value={role}>{role}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                onChange={(e) => setUserForm((prev) => ({ ...prev, role: e.target.value }))}
+                placeholder="Enter role (e.g. admin, abc, xyz)"
+              />
             </div>
             <div className="sm:col-span-2 flex justify-end gap-2 pt-2">
               <Button variant="outline" onClick={() => setUserFormOpen(false)}>

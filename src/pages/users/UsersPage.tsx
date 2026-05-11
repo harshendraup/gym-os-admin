@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Header } from '@/components/layout/Header'
 import { api } from '@/api/client'
+import { businessesApi } from '@/api/businesses.api'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -327,9 +328,20 @@ export default function UsersPage() {
     queryKey: ['admin', 'users'],
     queryFn: () => api.get<UsersResponse>('/admin/users'),
   })
+  const { data: businessesData } = useQuery({
+    queryKey: ['admin', 'businesses', 'users-page'],
+    queryFn: () => businessesApi.list({ perPage: 500 }),
+  })
 
   const users = data?.data ?? []
   const meta = data?.meta
+  const businessesById = useMemo(() => {
+    const map = new Map<string, { name: string; logoUrl?: string | null }>()
+    for (const business of businessesData?.data ?? []) {
+      map.set(business.id, { name: business.name, logoUrl: business.logoUrl })
+    }
+    return map
+  }, [businessesData?.data])
 
   const filteredUsers = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -422,8 +434,7 @@ export default function UsersPage() {
                     <TableHead>Phone</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
-                    <TableHead>Gym ID</TableHead>
-                    <TableHead>Business ID</TableHead>
+                    <TableHead>Business</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -432,51 +443,75 @@ export default function UsersPage() {
                 <TableBody>
                   {filteredUsers.length === 0 ? (
                     <TableRow>
-                      <TableCell className="h-20 text-center text-muted-foreground" colSpan={9}>
+                      <TableCell className="h-20 text-center text-muted-foreground" colSpan={8}>
                         No users match current filters.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.full_name || '—'}</TableCell>
-                        <TableCell>{user.phone || '—'}</TableCell>
-                        <TableCell>{user.email || '—'}</TableCell>
-                        <TableCell>
-                          <Badge variant={ROLE_BADGE[user.role] ?? 'outline'}>{user.role}</Badge>
-                        </TableCell>
-                        <TableCell className="font-mono text-xs">{user.gym_id || '—'}</TableCell>
-                        <TableCell className="font-mono text-xs">{user.business_id || '—'}</TableCell>
-                        <TableCell>
-                          <Badge variant={user.is_active ? 'default' : 'secondary'}>
-                            {user.is_active ? 'Active' : 'Inactive'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{formatDate(user.created_at)}</TableCell>
-                        <TableCell className="text-right">
-                          {user.role === 'super_admin' ? (
-                            <span className="text-xs text-muted-foreground">Not allowed</span>
-                          ) : (
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                size="sm"
-                                variant="default"
-                                onClick={() => setEditTarget(user)}
-                              >
-                                Edit
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => setDeleteTarget(user)}
-                              >
-                                Deactivate
-                              </Button>
+                    filteredUsers.map((user) => {
+                      const business = user.business_id ? businessesById.get(user.business_id) : undefined
+                      const logoUrl = business?.logoUrl
+                      const name = business?.name
+                      return (
+                        <TableRow key={user.id}>
+                          <TableCell className="font-medium">{user.full_name || '—'}</TableCell>
+                          <TableCell>{user.phone || '—'}</TableCell>
+                          <TableCell>{user.email || '—'}</TableCell>
+                          <TableCell>
+                            <Badge variant={ROLE_BADGE[user.role] ?? 'outline'}>{user.role}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2.5">
+                              <div className="h-8 w-8 overflow-hidden rounded-md border bg-muted/50 flex items-center justify-center text-xs font-semibold text-muted-foreground">
+                                {logoUrl ? (
+                                  <img
+                                    src={logoUrl}
+                                    alt={name ?? 'Business logo'}
+                                    className="h-full w-full object-cover"
+                                  />
+                                ) : (
+                                  <span>{(name ?? '—').charAt(0).toUpperCase()}</span>
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-medium">{name ?? '—'}</p>
+                                {!name && user.business_id && (
+                                  <p className="truncate font-mono text-[11px] text-muted-foreground">{user.business_id}</p>
+                                )}
+                              </div>
                             </div>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={user.is_active ? 'default' : 'secondary'}>
+                              {user.is_active ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{formatDate(user.created_at)}</TableCell>
+                          <TableCell className="text-right">
+                            {user.role === 'super_admin' ? (
+                              <span className="text-xs text-muted-foreground">Not allowed</span>
+                            ) : (
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="default"
+                                  onClick={() => setEditTarget(user)}
+                                >
+                                  Edit
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => setDeleteTarget(user)}
+                                >
+                                  Deactivate
+                                </Button>
+                              </div>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
                   )}
                 </TableBody>
               </Table>

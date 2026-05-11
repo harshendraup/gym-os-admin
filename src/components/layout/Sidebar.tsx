@@ -4,13 +4,13 @@ import { useAuthStore, selectRole } from '@/store/auth.store'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard, Users, CreditCard, Dumbbell, Salad,
-  CalendarCheck, BarChart3, Bell, Settings, Shield,
+  CalendarCheck, BarChart3, Bell, Settings,
   UserCog, Layers, Zap, Building2,
 } from 'lucide-react'
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['*'] },
-  { to: '/members', label: 'Members', icon: Users, roles: ['*'] },
+  { to: '/members', label: 'Members', icon: Users, roles: ['gym_owner', 'staff'] },
   { to: '/memberships', label: 'Memberships', icon: Layers, roles: ['gym_owner', 'staff'] },
   { to: '/users', label: 'Users', icon: Users, roles: ['super_admin'] },
   { to: '/trainers', label: 'Trainers', icon: UserCog, roles: ['gym_owner', 'staff'] },
@@ -22,7 +22,6 @@ const navItems = [
   { to: '/notifications', label: 'Notifications', icon: Bell, roles: ['*'] },
   { to: '/settings', label: 'Settings', icon: Settings, roles: ['gym_owner'] },
   { to: '/businesses', label: 'Businesses', icon: Building2, roles: ['super_admin'] },
-  { to: '/admin', label: 'Platform Admin', icon: Shield, roles: ['super_admin'] },
 ]
 
 export default function Sidebar() {
