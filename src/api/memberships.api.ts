@@ -1,17 +1,40 @@
 import { api } from './client'
 
+function requireBusinessId(businessId: string) {
+  const normalized = (businessId ?? '').trim()
+  if (!normalized) {
+    throw new Error('Business context is required. Please include businessId.')
+  }
+  return normalized
+}
+
 export interface MembershipPlan {
   id: string
   name: string
-  durationMonths: number
+  description: string | null
+  durationDays: number
   price: number
-  category: 'basic' | 'standard' | 'premium'
+  currency: string
+  billingCycle: 'monthly' | 'quarterly' | 'yearly'
+  enrollmentFee: number
+  trialDays: number
+  taxEnabled: boolean
+  taxRate: number | null
+  taxInclusive: boolean
+  visibility: 'public' | 'private'
+  discountPrice: number | null
+  planType: 'standard' | 'premium' | 'student' | 'couple' | 'corporate'
   includesPt: boolean
-  ptSessionsIncluded: number
-  freezeDaysAllowed: number
-  offerPrice: number | null
-  offerEndsAt: string | null
+  ptSessionsCount: number
+  includesDiet: boolean
+  includesLocker: boolean
+  includesSupplements: boolean
+  inclusions: string[]
+  maxFreezeDays: number
   isActive: boolean
+  sortOrder: number
+  createdAt: string
+  updatedAt: string
 }
 
 export interface MemberSubscription {
@@ -36,33 +59,36 @@ export interface SubscribePayload {
 }
 
 export const membershipsApi = {
-  listPlans: (gymId: string) =>
-    api.get<MembershipPlan[]>(`/gyms/${gymId}/memberships/plans`),
+  listPlans: (businessId: string) =>
+    api.get<MembershipPlan[]>(`/business-admin/businesses/${requireBusinessId(businessId)}/memberships/plans`),
 
-  createPlan: (gymId: string, data: Partial<MembershipPlan>) =>
-    api.post<MembershipPlan>(`/gyms/${gymId}/memberships/plans`, data),
+  showPlan: (businessId: string, planId: string) =>
+    api.get<MembershipPlan>(`/business-admin/businesses/${requireBusinessId(businessId)}/memberships/plans/${planId}`),
 
-  updatePlan: (gymId: string, planId: string, data: Partial<MembershipPlan>) =>
-    api.put<MembershipPlan>(`/gyms/${gymId}/memberships/plans/${planId}`, data),
+  createPlan: (businessId: string, data: Partial<MembershipPlan>) =>
+    api.post<MembershipPlan>(`/business-admin/businesses/${requireBusinessId(businessId)}/memberships/plans`, data),
 
-  deletePlan: (gymId: string, planId: string) =>
-    api.del(`/gyms/${gymId}/memberships/plans/${planId}`),
+  updatePlan: (businessId: string, planId: string, data: Partial<MembershipPlan>) =>
+    api.put<MembershipPlan>(`/business-admin/businesses/${requireBusinessId(businessId)}/memberships/plans/${planId}`, data),
 
-  subscribe: (gymId: string, data: SubscribePayload) =>
-    api.post<MemberSubscription>(`/gyms/${gymId}/memberships/subscribe`, data),
+  deletePlan: (businessId: string, planId: string) =>
+    api.del(`/business-admin/businesses/${requireBusinessId(businessId)}/memberships/plans/${planId}`),
 
-  freeze: (gymId: string, subscriptionId: string, data: { days: number; reason?: string }) =>
-    api.post(`/gyms/${gymId}/memberships/${subscriptionId}/freeze`, data),
+  subscribe: (businessId: string, data: SubscribePayload) =>
+    api.post<MemberSubscription>(`/business-admin/businesses/${requireBusinessId(businessId)}/memberships/subscribe`, data),
 
-  unfreeze: (gymId: string, subscriptionId: string) =>
-    api.post(`/gyms/${gymId}/memberships/${subscriptionId}/unfreeze`, {}),
+  freeze: (businessId: string, subscriptionId: string, data: { days: number; reason?: string }) =>
+    api.post(`/business-admin/businesses/${requireBusinessId(businessId)}/memberships/${subscriptionId}/freeze`, data),
 
-  cancel: (gymId: string, subscriptionId: string, data: { reason?: string }) =>
-    api.post(`/gyms/${gymId}/memberships/${subscriptionId}/cancel`, data),
+  unfreeze: (businessId: string, subscriptionId: string) =>
+    api.post(`/business-admin/businesses/${requireBusinessId(businessId)}/memberships/${subscriptionId}/unfreeze`, {}),
 
-  expiring: (gymId: string, days: number = 7) =>
-    api.get(`/gyms/${gymId}/memberships/expiring?days=${days}`),
+  cancel: (businessId: string, subscriptionId: string, data: { reason?: string }) =>
+    api.post(`/business-admin/businesses/${requireBusinessId(businessId)}/memberships/${subscriptionId}/cancel`, data),
 
-  memberHistory: (gymId: string, memberId: string) =>
-    api.get<MemberSubscription[]>(`/gyms/${gymId}/members/${memberId}/subscriptions`),
+  expiring: (businessId: string, days: number = 7) =>
+    api.get(`/business-admin/businesses/${requireBusinessId(businessId)}/memberships/expiring?days=${days}`),
+
+  memberHistory: (businessId: string, memberId: string) =>
+    api.get<MemberSubscription[]>(`/business-admin/businesses/${requireBusinessId(businessId)}/members/${memberId}/subscriptions`),
 }

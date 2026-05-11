@@ -95,6 +95,9 @@ export interface BusinessOverviewData {
 }
 
 export const businessesApi = {
+  myOverview: () =>
+    get<BusinessOverviewData>('/business-admin/overview'),
+
   list: (filters: BusinessFilters = {}) =>
     getPaginated<Business>('/admin/businesses', filters as Record<string, unknown>),
 

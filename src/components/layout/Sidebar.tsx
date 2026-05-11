@@ -11,7 +11,7 @@ import {
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['*'] },
   { to: '/members', label: 'Members', icon: Users, roles: ['gym_owner', 'staff'] },
-  { to: '/memberships', label: 'Memberships', icon: Layers, roles: ['gym_owner', 'staff'] },
+  { to: '/memberships', label: 'Memberships', icon: Layers, roles: ['*'] },
   { to: '/users', label: 'Users', icon: Users, roles: ['super_admin'] },
   { to: '/trainers', label: 'Trainers', icon: UserCog, roles: ['gym_owner', 'staff'] },
   { to: '/payments', label: 'Payments', icon: CreditCard, roles: ['gym_owner', 'staff'] },

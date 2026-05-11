@@ -4,61 +4,78 @@ import { useAuthStore } from '@/store/auth.store'
 import { toast } from './use-toast'
 
 const keys = {
-  plans: (gymId: string) => ['memberships', 'plans', gymId] as const,
-  expiring: (gymId: string, days: number) => ['memberships', 'expiring', gymId, days] as const,
-  memberHistory: (gymId: string, memberId: string) => ['memberships', 'history', gymId, memberId] as const,
+  plans: (businessId: string) => ['memberships', 'plans', businessId] as const,
+  expiring: (businessId: string, days: number) => ['memberships', 'expiring', businessId, days] as const,
+  memberHistory: (businessId: string, memberId: string) => ['memberships', 'history', businessId, memberId] as const,
 }
 
-export function useMembershipPlans() {
-  const gymId = useAuthStore((s) => s.gymContext?.gymId ?? '')
+function resolveScopeId(overrideBusinessId?: string) {
+  if ((overrideBusinessId ?? '').trim()) return (overrideBusinessId ?? '').trim()
+  const authState = useAuthStore.getState()
+  const context = (authState.gymContext ?? {}) as { businessId?: string; business_id?: string }
+  const user = (authState.user ?? {}) as { businessId?: string | null; business_id?: string | null }
+  return (context.businessId || context.business_id || user.businessId || user.business_id || '').trim()
+}
+
+export function useMembershipPlans(overrideBusinessId?: string) {
+  const businessId = resolveScopeId(overrideBusinessId)
   return useQuery({
-    queryKey: keys.plans(gymId),
-    queryFn: () => membershipsApi.listPlans(gymId),
-    enabled: !!gymId,
+    queryKey: keys.plans(businessId),
+    queryFn: () => membershipsApi.listPlans(businessId),
+    enabled: !!businessId,
+  })
+}
+
+export function useMembershipPlan(planId: string, overrideBusinessId?: string) {
+  const businessId = resolveScopeId(overrideBusinessId)
+  return useQuery({
+    queryKey: ['memberships', 'plan', businessId, planId],
+    queryFn: () => membershipsApi.showPlan(businessId, planId),
+    enabled: !!businessId && !!planId,
   })
 }
 
 export function useExpiringMemberships(days: number = 7) {
-  const gymId = useAuthStore((s) => s.gymContext?.gymId ?? '')
+  const businessId = resolveScopeId()
   return useQuery({
-    queryKey: keys.expiring(gymId, days),
-    queryFn: () => membershipsApi.expiring(gymId, days),
-    enabled: !!gymId,
+    queryKey: keys.expiring(businessId, days),
+    queryFn: () => membershipsApi.expiring(businessId, days),
+    enabled: !!businessId,
   })
 }
 
 export function useMemberSubscriptions(memberId: string) {
-  const gymId = useAuthStore((s) => s.gymContext?.gymId ?? '')
+  const businessId = resolveScopeId()
   return useQuery({
-    queryKey: keys.memberHistory(gymId, memberId),
-    queryFn: () => membershipsApi.memberHistory(gymId, memberId),
-    enabled: !!gymId && !!memberId,
+    queryKey: keys.memberHistory(businessId, memberId),
+    queryFn: () => membershipsApi.memberHistory(businessId, memberId),
+    enabled: !!businessId && !!memberId,
   })
 }
 
-export function useCreateMembershipPlan() {
-  const gymId = useAuthStore((s) => s.gymContext?.gymId ?? '')
+export function useCreateMembershipPlan(overrideBusinessId?: string) {
+  const businessId = resolveScopeId(overrideBusinessId)
   const qc = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: Partial<MembershipPlan>) => membershipsApi.createPlan(gymId, data),
+    mutationFn: (data: Partial<MembershipPlan>) => membershipsApi.createPlan(businessId, data),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: keys.plans(gymId) })
+      qc.invalidateQueries({ queryKey: keys.plans(businessId) })
       toast({ title: 'Plan created', variant: 'default' })
     },
     onError: () => toast({ title: 'Failed to create plan', variant: 'destructive' }),
   })
 }
 
-export function useUpdateMembershipPlan() {
-  const gymId = useAuthStore((s) => s.gymContext?.gymId ?? '')
+export function useUpdateMembershipPlan(overrideBusinessId?: string) {
+  const businessId = resolveScopeId(overrideBusinessId)
   const qc = useQueryClient()
 
   return useMutation({
     mutationFn: ({ planId, data }: { planId: string; data: Partial<MembershipPlan> }) =>
-      membershipsApi.updatePlan(gymId, planId, data),
+      membershipsApi.updatePlan(businessId, planId, data),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: keys.plans(gymId) })
+      qc.invalidateQueries({ queryKey: keys.plans(businessId) })
       toast({ title: 'Plan updated' })
     },
     onError: () => toast({ title: 'Failed to update plan', variant: 'destructive' }),
@@ -66,15 +83,29 @@ export function useUpdateMembershipPlan() {
 }
 
 export function useSubscribeMember() {
-  const gymId = useAuthStore((s) => s.gymContext?.gymId ?? '')
+  const businessId = resolveScopeId()
   const qc = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: SubscribePayload) => membershipsApi.subscribe(gymId, data),
+    mutationFn: (data: SubscribePayload) => membershipsApi.subscribe(businessId, data),
     onSuccess: (_, variables) => {
-      qc.invalidateQueries({ queryKey: keys.memberHistory(gymId, variables.gymMemberId) })
+      qc.invalidateQueries({ queryKey: keys.memberHistory(businessId, variables.gymMemberId) })
       toast({ title: 'Subscription created', variant: 'default' })
     },
     onError: () => toast({ title: 'Subscription failed', variant: 'destructive' }),
+  })
+}
+
+export function useDeleteMembershipPlan(overrideBusinessId?: string) {
+  const businessId = resolveScopeId(overrideBusinessId)
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: (planId: string) => membershipsApi.deletePlan(businessId, planId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.plans(businessId) })
+      toast({ title: 'Plan deleted' })
+    },
+    onError: () => toast({ title: 'Failed to delete plan', variant: 'destructive' }),
   })
 }

@@ -7,10 +7,14 @@ interface User {
   email: string | null
   phone: string | null
   profilePhotoUrl: string | null
+  gymId?: string | null
+  role?: string | null
 }
 
 interface GymContext {
-  gymId: string
+  gymId?: string
+  businessId?: string
+  business_id?: string
   role: string
 }
 
