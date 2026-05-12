@@ -12,7 +12,7 @@ const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['*'] },
   { to: '/members', label: 'Members', icon: Users, roles: ['gym_owner', 'staff'] },
   { to: '/memberships', label: 'Subscription', icon: Layers, roles: ['*'] },
-  { to: '/users', label: 'Users', icon: Users, roles: ['admin'] },
+  { to: '/users', label: 'Members', icon: Users, roles: ['admin'] },
   { to: '/trainers', label: 'Trainner', icon: UserCog, roles: ['admin'] },
   { to: '/payments', label: 'Payments', icon: CreditCard, roles: ['gym_owner', 'staff'] },
   { to: '/attendance', label: 'Attendance', icon: CalendarCheck, roles: ['*'] },

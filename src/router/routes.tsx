@@ -67,7 +67,14 @@ export const router = createBrowserRouter([
         ),
       },
 
-      { path: 'trainers', element: wrap(TrainersPage) },
+      {
+        path: 'trainers',
+        element: (
+          <RoleGuard allowed={['admin']}>
+            {wrap(TrainersPage)}
+          </RoleGuard>
+        ),
+      },
 
       { path: 'payments', element: wrap(PaymentsPage) },
 
