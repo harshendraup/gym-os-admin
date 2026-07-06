@@ -14,6 +14,7 @@ const wrap = (Component: React.LazyExoticComponent<any>) => (
   </Suspense>
 )
 
+const LandingPage = lazy(() => import('@/pages/marketing/LandingPage'))
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage'))
 const OtpPage = lazy(() => import('@/pages/auth/OtpPage'))
 const DashboardPage = lazy(() => import('@/pages/dashboard/DashboardPage'))
@@ -35,6 +36,7 @@ const BusinessesPage = lazy(() => import('@/pages/businesses/BusinessesPage'))
 const BusinessMembersPage = lazy(() => import('@/pages/businesses/BusinessMembersPage'))
 
 export const router = createBrowserRouter([
+  { path: '/', element: wrap(LandingPage) },
   {
     path: '/auth',
     element: <AuthLayout />,
@@ -44,14 +46,12 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    path: '/',
     element: (
       <AuthGuard>
         <AppLayout />
       </AuthGuard>
     ),
     children: [
-      { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: 'dashboard', element: wrap(DashboardPage) },
 
       { path: 'members', element: wrap(MembersPage) },

@@ -33,6 +33,7 @@ export interface BusinessFilters {
   search?: string
   page?: number
   perPage?: number
+  include_deleted?: boolean
 }
 
 export interface BusinessPayload {
@@ -130,7 +131,7 @@ export const businessesApi = {
   delete: (id: string) =>
     del<{ message: string }>(`/admin/businesses/${id}`),
 
-  members: (id: string, filters: { search?: string; status?: string; page?: number } = {}) =>
+  members: (id: string, filters: { search?: string; status?: string; page?: number; perPage?: number } = {}) =>
     getPaginated<Member>(`/admin/businesses/${id}/members`, filters as Record<string, unknown>),
 
   overview: (id: string) =>

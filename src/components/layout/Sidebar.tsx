@@ -10,7 +10,7 @@ import {
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['*'] },
-  { to: '/members', label: 'Members', icon: Users, roles: ['gym_owner', 'staff'] },
+  { to: '/members', label: 'Members', icon: Users, roles: ['gym_owner', 'staff', 'super_admin'] },
   { to: '/memberships', label: 'Subscription', icon: Layers, roles: ['*'] },
   { to: '/users', label: 'Members', icon: Users, roles: ['admin'] },
   { to: '/trainers', label: 'Trainner', icon: UserCog, roles: ['admin'] },

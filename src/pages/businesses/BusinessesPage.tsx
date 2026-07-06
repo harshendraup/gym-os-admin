@@ -888,6 +888,7 @@ export default function BusinessesPage() {
         type: typeFilter || undefined,
         page,
         perPage: 20,
+        include_deleted: true,
       }),
   })
 
