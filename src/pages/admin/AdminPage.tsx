@@ -139,7 +139,7 @@ function GymOwnersTable() {
   const owners = (data as any)?.data ?? []
 
   const remove = useMutation({
-    mutationFn: (id: string) => api.delete(`/admin/gym-owners/${id}`),
+    mutationFn: (id: string) => api.del(`/admin/gym-owners/${id}`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'gym-owners'] })
       toast({ title: 'Gym owner removed' })

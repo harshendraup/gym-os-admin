@@ -4,9 +4,10 @@ import { persist } from 'zustand/middleware'
 interface User {
   id: string
   fullName: string
-  email: string | null
-  phone: string | null
-  profilePhotoUrl: string | null
+  email?: string | null
+  phone?: string | null
+  profilePhotoUrl?: string | null
+  avatarUrl?: string
   gymId?: string | null
   role?: string | null
 }
@@ -16,6 +17,8 @@ interface GymContext {
   businessId?: string
   business_id?: string
   role: string
+  branchId?: string
+  gymName?: string
 }
 
 interface AuthState {

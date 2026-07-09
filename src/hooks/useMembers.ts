@@ -51,7 +51,7 @@ export function useCreateMember() {
       return membersApi.create(gymId, data)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: memberKeys.all(gymId) })
+      queryClient.invalidateQueries({ queryKey: memberKeys.all(gymId!) })
       toast.success('Member added successfully')
     },
     onError: (error: any) => {

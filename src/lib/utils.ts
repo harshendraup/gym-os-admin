@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { format } from 'date-fns'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -14,7 +15,6 @@ export function formatCurrency(paise: number): string {
 }
 
 export function formatDate(date: string | Date, fmt = 'dd MMM yyyy'): string {
-  const { format } = require('date-fns')
   return format(typeof date === 'string' ? new Date(date) : date, fmt)
 }
 

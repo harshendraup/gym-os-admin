@@ -63,7 +63,7 @@ export default function WorkoutModelsPage() {
                 <CardContent className="space-y-3">
                   <p className="text-sm text-muted-foreground">{model.description || 'No description'}</p>
                   <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>Goal: <b>{String(model.goal).replaceAll('_', ' ')}</b></div>
+                    <div>Goal: <b>{String(model.goal).replace(/_/g, ' ')}</b></div>
                     <div>Difficulty: <b>{model.difficulty}</b></div>
                     <div>Duration: <b>{model.duration_weeks} weeks</b></div>
                     <div>Sessions: <b>{model.sessions_per_week}/week</b></div>

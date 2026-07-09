@@ -22,7 +22,7 @@ export default function OtpPage() {
   const [isLoading, setIsLoading] = useState(false)
   const setAuth = useAuthStore((s) => s.setAuth)
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, formState: { errors } } = useForm<{ otp: string }>({
     resolver: zodResolver(schema),
   })
 
@@ -51,7 +51,7 @@ export default function OtpPage() {
             <div className="space-y-1.5">
               <Label>OTP Code</Label>
               <Input placeholder="123456" maxLength={6} className="text-center text-lg tracking-widest" {...register('otp')} />
-              {errors.otp && <p className="text-xs text-destructive">{errors.otp.message}</p>}
+              {errors.otp?.message && <p className="text-xs text-destructive">{errors.otp.message}</p>}
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? 'Verifying...' : 'Verify OTP'}

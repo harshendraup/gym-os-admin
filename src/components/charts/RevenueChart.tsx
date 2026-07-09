@@ -3,13 +3,20 @@ import {
 } from 'recharts'
 import type { RevenueChartPoint } from '@/api/analytics.api'
 import { format, parseISO } from 'date-fns'
+import { useRevenueChart } from '@/hooks/useAnalytics'
 
 interface RevenueChartProps {
-  data: RevenueChartPoint[]
+  data?: RevenueChartPoint[]
 }
 
-export function RevenueChart({ data }: RevenueChartProps) {
-  const chartData = data.map((d) => ({
+export function RevenueChart({ data: propData }: RevenueChartProps) {
+  const { data: fetchedData, isLoading } = useRevenueChart()
+
+  if (!propData && isLoading) {
+    return <div className="h-[220px] w-full rounded-xl animate-pulse bg-muted" />
+  }
+
+  const chartData = (propData ?? fetchedData ?? []).map((d) => ({
     month: format(parseISO(`${d.month}-01`), 'MMM'),
     revenue: d.revenue / 100,
   }))

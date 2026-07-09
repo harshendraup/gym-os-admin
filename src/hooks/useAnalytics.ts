@@ -41,7 +41,7 @@ export function useMemberGrowth(months = 12) {
   })
 }
 
-export function useAttendanceHeatmap(year: number, month: number) {
+export function useAttendanceHeatmap(year = new Date().getFullYear(), month = new Date().getMonth() + 1) {
   const gymId = useAuthStore((s) => s.gymContext?.gymId)!
   return useQuery({
     queryKey: analyticsKeys.heatmap(gymId, year, month),
