@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import type { ColumnDef } from '@tanstack/react-table'
-import { Plus, Trash2, Eye, Pencil, Mail, Phone, Building2, Calendar, User } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
+import { Plus, Trash2, Eye, Pencil, Mail, Phone, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
 import { EntityListPage } from '@/components/entity/EntityListPage'
 import { CreateScopedUserDialog } from '@/components/entity/CreateScopedUserDialog'
@@ -121,74 +121,6 @@ function getColumns({
       ),
     },
   ]
-}
-
-function DetailRow({ icon: Icon, label, value }: { icon: any; label: string; value?: string | null }) {
-  return (
-    <div className="flex items-start gap-3 py-2">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100">
-        <Icon className="h-4 w-4 text-slate-500" />
-      </div>
-      <div className="min-w-0">
-        <div className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</div>
-        <div className="break-words text-sm text-slate-800">{value || '—'}</div>
-      </div>
-    </div>
-  )
-}
-
-function ViewSubAdminDialog({
-  user,
-  branchName,
-  onClose,
-}: {
-  user: ManagedUser | null
-  branchName: (id: number | null) => string
-  onClose: () => void
-}) {
-  return (
-    <Dialog open={!!user} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <User className="h-5 w-5 text-primary" />
-            {user?.fullName ?? user?.firstName}
-          </DialogTitle>
-          <DialogDescription>Sub-admin details</DialogDescription>
-        </DialogHeader>
-        {user && (
-          <div className="divide-y divide-slate-100">
-            <DetailRow icon={User} label="Full Name" value={user.fullName ?? `${user.firstName} ${user.lastName ?? ''}`} />
-            <DetailRow icon={Mail} label="Email" value={user.email} />
-            <DetailRow icon={Phone} label="Mobile" value={user.mobile} />
-            <DetailRow icon={Building2} label="Branch" value={branchName(user.branchId)} />
-            <DetailRow
-              icon={Calendar}
-              label="Created At"
-              value={user.createdAt ? new Date(user.createdAt).toLocaleString('en-IN') : undefined}
-            />
-            <DetailRow
-              icon={Calendar}
-              label="Updated At"
-              value={user.updatedAt ? new Date(user.updatedAt).toLocaleString('en-IN') : undefined}
-            />
-            <div className="flex items-center gap-3 py-2">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100">
-                <User className="h-4 w-4 text-slate-500" />
-              </div>
-              <div>
-                <div className="text-xs font-medium uppercase tracking-wide text-slate-400">Status</div>
-                <StatusBadge status={user.status} />
-              </div>
-            </div>
-          </div>
-        )}
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Close</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
 }
 
 const editSchema = z.object({
@@ -308,12 +240,12 @@ function EditSubAdminDialog({
 }
 
 export default function AdminSubAdminsPage() {
+  const navigate = useNavigate()
   const { subAdminRole } = useRoles()
   const { data: subAdmins, isLoading, isError, refetch } = useUsersByRole(subAdminRole?.id)
   const gymContext = useAuthStore((s) => s.gymContext)
   const { data: branches = [] } = useBranches(gymContext?.businessId)
   const [createOpen, setCreateOpen] = useState(false)
-  const [viewUser, setViewUser] = useState<ManagedUser | null>(null)
   const [editUser, setEditUser] = useState<ManagedUser | null>(null)
   const deleteUser = useDeleteUser()
 
@@ -324,7 +256,7 @@ export default function AdminSubAdminsPage() {
   const branchName = (id: number | null) => branches.find((b) => b.id === id)?.branchName ?? '—'
   const columns = getColumns({
     branchName,
-    onView: setViewUser,
+    onView: (u) => navigate(`/admin/sub-admins/${u.id}`),
     onEdit: setEditUser,
     onDelete: (u) => deleteUser.mutate(u.id),
     deletingId: deleteUser.isPending ? (deleteUser.variables ?? null) : null,
@@ -332,7 +264,6 @@ export default function AdminSubAdminsPage() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* <Header title="Sub-Admins" /> */}
       <div className="flex-1 overflow-auto p-6">
         <EntityListPage
           title="Sub-Admins"
@@ -359,7 +290,6 @@ export default function AdminSubAdminsPage() {
         businessId={gymContext?.businessId ? Number(gymContext.businessId) : undefined}
         branchRequired
       />
-      <ViewSubAdminDialog user={viewUser} branchName={branchName} onClose={() => setViewUser(null)} />
       <EditSubAdminDialog user={editUser} branches={branches} onClose={() => setEditUser(null)} />
     </div>
   )

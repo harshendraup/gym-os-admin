@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import type { ColumnDef } from '@tanstack/react-table'
-import { Plus, Trash2, Users, Eye, Pencil, Mail, Phone, Building2, Calendar, User } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
+import { Plus, Trash2, Users, Eye, Pencil, Mail, Phone, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { EntityListPage } from '@/components/entity/EntityListPage'
@@ -138,77 +138,6 @@ function getColumns({
   ]
 }
 
-function DetailRow({ icon: Icon, label, value }: { icon: any; label: string; value?: string | null }) {
-  return (
-    <div className="flex items-start gap-3 py-2">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100">
-        <Icon className="h-4 w-4 text-slate-500" />
-      </div>
-      <div className="min-w-0">
-        <div className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</div>
-        <div className="break-words text-sm text-slate-800">{value || '—'}</div>
-      </div>
-    </div>
-  )
-}
-
-function ViewTrainerDialog({
-  trainer,
-  branchName,
-  memberCount,
-  onClose,
-}: {
-  trainer: ManagedUser | null
-  branchName: (id: number | null) => string
-  memberCount: (trainerId: string) => number
-  onClose: () => void
-}) {
-  return (
-    <Dialog open={!!trainer} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <User className="h-5 w-5 text-primary" />
-            {trainer?.fullName ?? trainer?.firstName}
-          </DialogTitle>
-          <DialogDescription>Trainer details</DialogDescription>
-        </DialogHeader>
-        {trainer && (
-          <div className="divide-y divide-slate-100">
-            <DetailRow icon={User} label="Full Name" value={trainer.fullName ?? `${trainer.firstName} ${trainer.lastName ?? ''}`} />
-            <DetailRow icon={Mail} label="Email" value={trainer.email} />
-            <DetailRow icon={Phone} label="Mobile" value={trainer.mobile} />
-            <DetailRow icon={Building2} label="Branch" value={branchName(trainer.branchId)} />
-            <DetailRow icon={Users} label="Assigned Members" value={String(memberCount(trainer.id))} />
-            <DetailRow
-              icon={Calendar}
-              label="Created At"
-              value={trainer.createdAt ? new Date(trainer.createdAt).toLocaleString('en-IN') : undefined}
-            />
-            <DetailRow
-              icon={Calendar}
-              label="Updated At"
-              value={trainer.updatedAt ? new Date(trainer.updatedAt).toLocaleString('en-IN') : undefined}
-            />
-            <div className="flex items-center gap-3 py-2">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100">
-                <User className="h-4 w-4 text-slate-500" />
-              </div>
-              <div>
-                <div className="text-xs font-medium uppercase tracking-wide text-slate-400">Status</div>
-                <StatusBadge status={trainer.status} />
-              </div>
-            </div>
-          </div>
-        )}
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Close</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
 const editSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().optional(),
@@ -326,6 +255,7 @@ function EditTrainerDialog({
 }
 
 export default function AdminTrainersPage() {
+  const navigate = useNavigate()
   const { trainerRole, memberRole } = useRoles()
   const { data: trainers, isLoading, isError, refetch } = useUsersByRole(trainerRole?.id)
   const { data: members = [] } = useUsersByRole(memberRole?.id)
@@ -333,7 +263,6 @@ export default function AdminTrainersPage() {
   const { data: branches = [] } = useBranches(gymContext?.businessId)
   const [createOpen, setCreateOpen] = useState(false)
   const [viewingTrainer, setViewingTrainer] = useState<ManagedUser | null>(null)
-  const [detailTrainer, setDetailTrainer] = useState<ManagedUser | null>(null)
   const [editTrainer, setEditTrainer] = useState<ManagedUser | null>(null)
   const deleteUser = useDeleteUser()
 
@@ -357,7 +286,7 @@ export default function AdminTrainersPage() {
     branchName,
     memberCount,
     onViewMembers: setViewingTrainer,
-    onView: setDetailTrainer,
+    onView: (u) => navigate(`/admin/trainers/${u.id}`),
     onEdit: setEditTrainer,
     onDelete: (u) => deleteUser.mutate(u.id),
     deletingId: deleteUser.isPending ? (deleteUser.variables ?? null) : null,
@@ -365,7 +294,6 @@ export default function AdminTrainersPage() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* <Header title="Trainers" /> */}
       <div className="flex-1 overflow-auto p-6">
         <EntityListPage
           title="Trainers"
@@ -400,12 +328,6 @@ export default function AdminTrainersPage() {
         members={viewingTrainer ? membersByTrainer.get(viewingTrainer.id) ?? [] : []}
       />
 
-      <ViewTrainerDialog
-        trainer={detailTrainer}
-        branchName={branchName}
-        memberCount={memberCount}
-        onClose={() => setDetailTrainer(null)}
-      />
       <EditTrainerDialog trainer={editTrainer} branches={branches} onClose={() => setEditTrainer(null)} />
     </div>
   )

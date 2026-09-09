@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Header } from '@/components/layout/Header'
 import { MemberProfileTabs } from '@/components/entity/MemberProfileTabs'
-import { useUser, useDeleteUser, useUsersByRole } from '@/hooks/useUsers'
+import { useUser, useUpdateUser, useUsersByRole } from '@/hooks/useUsers'
 import { useBranches } from '@/hooks/useBranches'
 import { useRoles } from '@/hooks/useRoles'
 import { useDietAssignmentsForMember } from '@/hooks/useDietAssignments'
@@ -12,7 +11,7 @@ export default function AdminMemberDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: user, isLoading } = useUser(id!)
-  const deleteUser = useDeleteUser()
+  const updateUser = useUpdateUser(id!)
   const gymContext = useAuthStore((s) => s.gymContext)
   const { data: branches = [] } = useBranches(gymContext?.businessId)
   const { trainerRole } = useRoles()
@@ -34,22 +33,16 @@ export default function AdminMemberDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col h-full">
-        <Header title="Member" />
-        <div className="flex-1 overflow-auto p-6">
-          <div className="h-32 animate-pulse rounded-2xl bg-muted" />
-        </div>
+      <div className="p-6">
+        <div className="h-32 animate-pulse rounded-2xl bg-muted" />
       </div>
     )
   }
 
   if (!user) {
     return (
-      <div className="flex flex-col h-full">
-        <Header title="Member" />
-        <div className="flex-1 overflow-auto p-6">
-          <p className="text-sm text-muted-foreground">Member not found.</p>
-        </div>
+      <div className="p-6">
+        <p className="text-sm text-muted-foreground">Member not found.</p>
       </div>
     )
   }
@@ -57,24 +50,19 @@ export default function AdminMemberDetailPage() {
   const branchName = branches.find((b) => b.id === user.branchId)?.branchName
 
   return (
-    <div className="flex flex-col h-full">
-      <Header title={user.fullName ?? user.firstName} />
-      <div className="flex-1 overflow-auto p-6">
-        <MemberProfileTabs
-          member={user}
-          roleLabel="Member"
-          branchLabel={branchName}
-          onBack={() => navigate('/admin/members')}
-          onDelete={() =>
-            deleteUser.mutate(user.id, { onSuccess: () => navigate('/admin/members') })
-          }
-          isDeleting={deleteUser.isPending}
-          trainerOptions={branchTrainers}
-          currentTrainerName={currentTrainer?.fullName ?? currentTrainer?.firstName}
-          dietAssignments={diets}
-          dietTrainerName={trainerName}
-        />
-      </div>
-    </div>
+    <MemberProfileTabs
+      member={user}
+      roleLabel="Member"
+      branchLabel={branchName}
+      onBack={() => navigate('/admin/members')}
+      onToggleStatus={() =>
+        updateUser.mutate({ status: user.status === 'Active' ? 'Inactive' : 'Active' })
+      }
+      isTogglingStatus={updateUser.isPending}
+      trainerOptions={branchTrainers}
+      currentTrainerName={currentTrainer?.fullName ?? currentTrainer?.firstName}
+      dietAssignments={diets}
+      dietTrainerName={trainerName}
+    />
   )
 }

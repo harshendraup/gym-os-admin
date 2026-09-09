@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import type { ColumnDef } from '@tanstack/react-table'
-import { Plus, MapPin, Eye, Trash2, Mail, Phone, MapPinned, Building2, Calendar } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
+import { Plus, MapPin, Eye, Trash2, Mail, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -180,72 +180,6 @@ function getColumns({
   ]
 }
 
-function DetailRow({ icon: Icon, label, value }: { icon: any; label: string; value?: string | null }) {
-  return (
-    <div className="flex items-start gap-3 py-2">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100">
-        <Icon className="h-4 w-4 text-slate-500" />
-      </div>
-      <div className="min-w-0">
-        <div className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</div>
-        <div className="text-sm text-slate-800 break-words">{value || '—'}</div>
-      </div>
-    </div>
-  )
-}
-
-function ViewBranchDialog({ branch, onClose }: { branch: BranchRecord | null; onClose: () => void }) {
-  return (
-    <Dialog open={!!branch} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-primary" />
-            {branch?.branchName}
-          </DialogTitle>
-          <DialogDescription>Branch details</DialogDescription>
-        </DialogHeader>
-        {branch && (
-          <div className="divide-y divide-slate-100">
-            <DetailRow icon={Building2} label="Branch Name" value={branch.branchName} />
-            <DetailRow icon={Mail} label="Email" value={branch.email} />
-            <DetailRow icon={Phone} label="Mobile Number" value={branch.mobileNumber} />
-            <DetailRow icon={MapPinned} label="Address" value={branch.address} />
-            <DetailRow
-              icon={MapPinned}
-              label="City / State / Country"
-              value={[branch.city, branch.state, branch.country].filter(Boolean).join(', ')}
-            />
-            <DetailRow icon={MapPinned} label="Pincode" value={branch.pincode} />
-            <DetailRow
-              icon={Calendar}
-              label="Created At"
-              value={branch.createdAt ? new Date(branch.createdAt).toLocaleString('en-IN') : undefined}
-            />
-            <DetailRow
-              icon={Calendar}
-              label="Updated At"
-              value={branch.updatedAt ? new Date(branch.updatedAt).toLocaleString('en-IN') : undefined}
-            />
-            <div className="flex items-center gap-3 py-2">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100">
-                <Building2 className="h-4 w-4 text-slate-500" />
-              </div>
-              <div>
-                <div className="text-xs font-medium uppercase tracking-wide text-slate-400">Status</div>
-                <StatusBadge status={branch.status} />
-              </div>
-            </div>
-          </div>
-        )}
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Close</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
 function DeleteBranchDialog({ branch, onClose }: { branch: BranchRecord | null; onClose: () => void }) {
   const deleteBranch = useDeleteBranch()
 
@@ -275,21 +209,23 @@ function DeleteBranchDialog({ branch, onClose }: { branch: BranchRecord | null; 
 }
 
 export default function AdminBranchesPage() {
+  const navigate = useNavigate()
   const gymContext = useAuthStore((s) => s.gymContext)
   const { data: branches, isLoading, isError, refetch } = useBranches(gymContext?.businessId)
   const [createOpen, setCreateOpen] = useState(false)
-  const [viewBranch, setViewBranch] = useState<BranchRecord | null>(null)
   const [deleteBranch, setDeleteBranch] = useState<BranchRecord | null>(null)
 
   useEffect(() => {
     console.log('[AdminBranchesPage] branches response:', branches)
   }, [branches])
 
-  const columns = getColumns({ onView: setViewBranch, onDelete: setDeleteBranch })
+  const columns = getColumns({
+    onView: (branch) => navigate(`/admin/branches/${branch.id}`),
+    onDelete: setDeleteBranch,
+  })
 
   return (
     <div className="flex flex-col h-full">
-      {/* <Header title="Branches" /> */}
       <div className="flex-1 overflow-auto p-6">
         <EntityListPage
           title="Branches"
@@ -309,7 +245,6 @@ export default function AdminBranchesPage() {
       </div>
 
       <CreateBranchDialog open={createOpen} onClose={() => setCreateOpen(false)} />
-      <ViewBranchDialog branch={viewBranch} onClose={() => setViewBranch(null)} />
       <DeleteBranchDialog branch={deleteBranch} onClose={() => setDeleteBranch(null)} />
     </div>
   )

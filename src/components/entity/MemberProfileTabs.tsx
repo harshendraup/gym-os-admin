@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import {
-  Mail, Phone, MapPin, Calendar, Trash2, Pencil, ArrowLeft, Dumbbell, UserCog, Salad,
+  Mail, Phone, MapPin, Calendar, Pencil, ArrowLeft, Dumbbell, UserCog, Salad,
   Info, User as UserIcon, HeartPulse, Apple, CreditCard, TrendingUp, CalendarCheck,
-  Plus, ShieldAlert, StickyNote,
+  Plus, ShieldAlert, StickyNote, Power, PowerOff,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -32,8 +32,8 @@ interface MemberProfileTabsProps {
   roleLabel?: string
   branchLabel?: string
   onBack?: () => void
-  onDelete?: () => void
-  isDeleting?: boolean
+  onToggleStatus?: () => void
+  isTogglingStatus?: boolean
   trainerOptions: ManagedUser[]
   currentTrainerName?: string
   dietAssignments: DietAssignmentRecord[]
@@ -48,11 +48,12 @@ interface MemberProfileTabsProps {
  * these fitness-journey concepts).
  */
 export function MemberProfileTabs({
-  member, roleLabel, branchLabel, onBack, onDelete, isDeleting,
+  member, roleLabel, branchLabel, onBack, onToggleStatus, isTogglingStatus,
   trainerOptions, currentTrainerName, dietAssignments, dietTrainerName,
 }: MemberProfileTabsProps) {
   const memberId = Number(member.id)
   const displayName = member.fullName ?? member.firstName
+  const isActive = member.status === 'Active'
 
   const [assignTrainerOpen, setAssignTrainerOpen] = useState(false)
   const [dietsOpen, setDietsOpen] = useState(false)
@@ -94,7 +95,8 @@ export function MemberProfileTabs({
         </Button>
       )}
 
-      <Card>
+      <Card className="overflow-hidden">
+        <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 to-blue-700" />
         <CardContent className="p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -107,15 +109,24 @@ export function MemberProfileTabs({
                 <h2 className="text-xl font-bold text-slate-900">{displayName}</h2>
                 <div className="mt-1 flex items-center gap-2">
                   {roleLabel && <Badge>{roleLabel}</Badge>}
-                  <Badge variant={member.status === 'Active' ? 'success' : 'secondary'}>{member.status}</Badge>
+                  <Badge variant={isActive ? 'success' : 'secondary'}>{member.status}</Badge>
                   {member.memberCode && <span className="text-xs text-slate-400">#{member.memberCode}</span>}
                 </div>
               </div>
             </div>
-            {onDelete && (
-              <Button variant="destructive" size="sm" onClick={onDelete} disabled={isDeleting}>
-                <Trash2 className="mr-1.5 h-4 w-4" />
-                {isDeleting ? 'Removing...' : 'Remove'}
+            {onToggleStatus && (
+              <Button
+                variant={isActive ? 'outline' : 'default'}
+                size="sm"
+                onClick={onToggleStatus}
+                disabled={isTogglingStatus}
+              >
+                {isActive ? (
+                  <PowerOff className="mr-1.5 h-4 w-4" />
+                ) : (
+                  <Power className="mr-1.5 h-4 w-4" />
+                )}
+                {isTogglingStatus ? 'Updating...' : isActive ? 'Deactivate' : 'Activate'}
               </Button>
             )}
           </div>
