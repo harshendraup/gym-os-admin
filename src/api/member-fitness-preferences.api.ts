@@ -1,6 +1,10 @@
 import { get, put } from './client'
 
 export type FitnessLevel = 'Beginner' | 'Intermediate' | 'Advanced'
+export type GymExperienceLevel = 'Less than 6 months' | '6-12 months' | '1-3 years' | '3+ years'
+export type FitnessGoal =
+  | 'Weight Loss' | 'Fat Loss' | 'Muscle Gain' | 'Strength' | 'Bodybuilding'
+  | 'General Fitness' | 'Endurance' | 'Mobility/Flexibility' | 'Sports Performance' | 'Weight Maintenance'
 
 export interface MemberFitnessPreferenceRecord {
   id: number
@@ -9,6 +13,7 @@ export interface MemberFitnessPreferenceRecord {
   memberId: number
   updatedBy: number | null
   fitnessLevel: FitnessLevel | null
+  gymExperienceLevel: GymExperienceLevel | null
   previousGymExperience: string | null
   workoutFrequency: number | null
   preferredDays: string[] | null
@@ -23,6 +28,15 @@ export interface MemberFitnessPreferenceRecord {
   exerciseRestrictions: string | null
   mobilityLimitations: string | null
   fitnessAssessmentNotes: string | null
+  primaryGoal: FitnessGoal | null
+  secondaryGoals: FitnessGoal[] | null
+  targetWeight: string | null
+  targetBodyFatPercentage: string | null
+  goalTimeline: string | null
+  strengthLevel: FitnessLevel | null
+  cardioLevel: FitnessLevel | null
+  mobilityLevel: FitnessLevel | null
+  overallFitnessLevel: FitnessLevel | null
   createdAt: string
   updatedAt: string
 }
@@ -30,6 +44,7 @@ export interface MemberFitnessPreferenceRecord {
 export interface SaveMemberFitnessPreferencePayload {
   memberId: number
   fitnessLevel?: FitnessLevel
+  gymExperienceLevel?: GymExperienceLevel
   previousGymExperience?: string
   workoutFrequency?: number
   preferredDays?: string[]
@@ -44,6 +59,15 @@ export interface SaveMemberFitnessPreferencePayload {
   exerciseRestrictions?: string
   mobilityLimitations?: string
   fitnessAssessmentNotes?: string
+  primaryGoal?: FitnessGoal
+  secondaryGoals?: FitnessGoal[]
+  targetWeight?: number
+  targetBodyFatPercentage?: number
+  goalTimeline?: string
+  strengthLevel?: FitnessLevel
+  cardioLevel?: FitnessLevel
+  mobilityLevel?: FitnessLevel
+  overallFitnessLevel?: FitnessLevel
 }
 
 export const memberFitnessPreferencesApi = {

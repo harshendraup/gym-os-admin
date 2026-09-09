@@ -217,15 +217,31 @@ export function MemberProfileTabs({
                 <p className="text-sm text-slate-400">No fitness profile recorded yet.</p>
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <DetailRow icon={Dumbbell} label="Primary Goal" value={fitnessPrefs.data.primaryGoal ?? '—'} />
+                  <DetailRow icon={Dumbbell} label="Secondary Goals" value={fitnessPrefs.data.secondaryGoals?.join(', ') || '—'} />
+                  <DetailRow icon={Dumbbell} label="Target Weight" value={fitnessPrefs.data.targetWeight ? `${fitnessPrefs.data.targetWeight} kg` : '—'} />
+                  <DetailRow icon={Dumbbell} label="Target Body Fat %" value={fitnessPrefs.data.targetBodyFatPercentage ? `${fitnessPrefs.data.targetBodyFatPercentage}%` : '—'} />
+                  <DetailRow icon={Calendar} label="Goal Timeline" value={fitnessPrefs.data.goalTimeline ?? '—'} />
                   <DetailRow icon={Dumbbell} label="Fitness Level" value={fitnessPrefs.data.fitnessLevel ?? '—'} />
+                  <DetailRow icon={Dumbbell} label="Gym Experience" value={fitnessPrefs.data.gymExperienceLevel ?? '—'} />
                   <DetailRow icon={Calendar} label="Workouts / Week" value={fitnessPrefs.data.workoutFrequency ? String(fitnessPrefs.data.workoutFrequency) : '—'} />
                   <DetailRow icon={Calendar} label="Preferred Days" value={fitnessPrefs.data.preferredDays?.join(', ') || '—'} />
+                  <DetailRow icon={Calendar} label="Preferred Duration" value={fitnessPrefs.data.preferredDuration ? `${fitnessPrefs.data.preferredDuration} min` : '—'} />
                   <DetailRow icon={Calendar} label="Preferred Time" value={fitnessPrefs.data.preferredTime ?? '—'} />
                   <DetailRow icon={Dumbbell} label="Workout Types" value={fitnessPrefs.data.preferredWorkoutTypes?.join(', ') || '—'} />
                   <DetailRow icon={Dumbbell} label="Favorite Exercises" value={fitnessPrefs.data.favoriteExercises?.join(', ') || '—'} />
                   <DetailRow icon={Dumbbell} label="Exercises to Avoid" value={fitnessPrefs.data.avoidExercises?.join(', ') || '—'} />
-                  <DetailRow icon={ShieldAlert} label="Injuries" value={fitnessPrefs.data.injuries || '—'} />
-                  <DetailRow icon={ShieldAlert} label="Physical Limitations" value={fitnessPrefs.data.physicalLimitations || '—'} />
+                  <DetailRow icon={ShieldAlert} label="Injuries" value={fitnessPrefs.data.injuries || 'None'} />
+                  <DetailRow icon={ShieldAlert} label="Physical Limitations" value={fitnessPrefs.data.physicalLimitations || 'None'} />
+                  <DetailRow icon={ShieldAlert} label="Exercise Restrictions" value={fitnessPrefs.data.exerciseRestrictions || 'None'} />
+                  <DetailRow icon={ShieldAlert} label="Mobility Limitations" value={fitnessPrefs.data.mobilityLimitations || 'None'} />
+                  <DetailRow icon={Dumbbell} label="Strength Level" value={fitnessPrefs.data.strengthLevel ?? '—'} />
+                  <DetailRow icon={Dumbbell} label="Cardio Level" value={fitnessPrefs.data.cardioLevel ?? '—'} />
+                  <DetailRow icon={Dumbbell} label="Mobility Level" value={fitnessPrefs.data.mobilityLevel ?? '—'} />
+                  <DetailRow icon={Dumbbell} label="Overall Fitness Level" value={fitnessPrefs.data.overallFitnessLevel ?? '—'} />
+                  {fitnessPrefs.data.fitnessAssessmentNotes && (
+                    <DetailRow icon={ShieldAlert} label="Trainer Assessment Notes" value={fitnessPrefs.data.fitnessAssessmentNotes} />
+                  )}
                 </div>
               )}
             </CardContent>
