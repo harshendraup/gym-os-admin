@@ -17,6 +17,7 @@ import { EditMemberPersonalInfoDialog } from './EditMemberPersonalInfoDialog'
 import { EditFitnessPreferencesDialog } from './EditFitnessPreferencesDialog'
 import { RecordMeasurementDialog } from './RecordMeasurementDialog'
 import { LogCheckInDialog } from './LogCheckInDialog'
+import { MemberAIInsightsCard } from './MemberAIInsightsCard'
 import { useBodyMeasurementsForMember } from '@/hooks/useBodyMeasurements'
 import { useAttendanceLogsForMember, useAttendanceStats } from '@/hooks/useAttendanceLogs'
 import { useMemberFitnessPreferences } from '@/hooks/useMemberFitnessPreferences'
@@ -84,7 +85,8 @@ export function MemberProfileTabs({
   }
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="animate-fade-in grid grid-cols-1 gap-4 xl:grid-cols-3">
+    <div className="space-y-4 xl:col-span-2">
       {onBack && (
         <Button variant="ghost" size="sm" onClick={onBack} className="-ml-2">
           <ArrowLeft className="mr-1.5 h-4 w-4" />
@@ -378,6 +380,30 @@ export function MemberProfileTabs({
           </Card>
         </TabsContent>
       </Tabs>
+    </div>
+
+    <div className="xl:col-span-1">
+      <div className="xl:sticky xl:top-4">
+        <MemberAIInsightsCard
+          user={member}
+          dietCount={dietAssignments.length}
+          hasTrainer={!!currentTrainerName}
+          lastCheckInAt={attendanceStats.data?.lastCheckInAt}
+          checkInStreak={attendanceStats.data?.streak}
+          monthlyVisits={attendanceStats.data?.monthlyVisits}
+          bmi={latestMeasurement?.bmi}
+          weightTrendKg={
+            latestMeasurement?.weight && previousMeasurement?.weight
+              ? Math.round((Number(latestMeasurement.weight) - Number(previousMeasurement.weight)) * 10) / 10
+              : null
+          }
+          injuries={fitnessPrefs.data?.injuries}
+          physicalLimitations={fitnessPrefs.data?.physicalLimitations}
+          nutritionGoal={latestAssessment?.goal}
+          membershipStatus={member.status}
+        />
+      </div>
+    </div>
 
       <EditMemberPersonalInfoDialog open={editPersonalOpen} onClose={() => setEditPersonalOpen(false)} member={member} />
       <EditFitnessPreferencesDialog
