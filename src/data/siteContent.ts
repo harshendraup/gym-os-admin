@@ -30,9 +30,10 @@ export const siteContact = {
   ],
 
   socials: [
-    { label: 'LinkedIn', href: 'https://linkedin.com' },
-    { label: 'Instagram', href: 'https://instagram.com' },
+    { label: 'LinkedIn', href: 'https://in.linkedin.com/company/krikal' },
+    { label: 'Instagram', href: 'https://www.instagram.com/krikalone.official/' },
     { label: 'X', href: 'https://x.com' },
+    { label: 'YouTube', href: 'http://www.youtube.com/@Krikalone' },
   ],
 } as const
 
