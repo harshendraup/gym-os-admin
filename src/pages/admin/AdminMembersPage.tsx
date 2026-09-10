@@ -19,6 +19,7 @@ import { useUsersByRole, useDeleteUser, useUpdateUser } from '@/hooks/useUsers'
 import { useBranches } from '@/hooks/useBranches'
 import { useAuthStore } from '@/store/auth.store'
 import type { ManagedUser } from '@/api/user-management.api'
+import { getRandomPageBackground } from '@/data/pageBackgrounds'
 
 function StatusBadge({ status }: { status?: string | null }) {
   const normalized = (status || '').toLowerCase()
@@ -241,6 +242,7 @@ export default function AdminMembersPage() {
   const { memberRole } = useRoles()
   const { data: members, isLoading, isError, refetch } = useUsersByRole(memberRole?.id)
   const gymContext = useAuthStore((s) => s.gymContext)
+  const [backgroundImage] = useState(getRandomPageBackground)
   const { data: branches = [] } = useBranches(gymContext?.businessId)
   const [createOpen, setCreateOpen] = useState(false)
   const [editMember, setEditMember] = useState<ManagedUser | null>(null)
@@ -260,9 +262,14 @@ export default function AdminMembersPage() {
   })
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="relative -m-6 flex h-[calc(100%+3rem)] flex-col overflow-hidden lg:-m-8 lg:h-[calc(100%+4rem)]">
+      <div
+        className="pointer-events-none absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `linear-gradient(rgba(248,250,252,0.78), rgba(248,250,252,0.86)), url('${backgroundImage}')` }}
+        aria-hidden="true"
+      />
       {/* <Header title="Members" /> */}
-      <div className="flex-1 overflow-auto p-6">
+      <div className="relative z-10 flex-1 overflow-auto p-6">
         <EntityListPage
           title="Members"
           description="Members across your business's branches"

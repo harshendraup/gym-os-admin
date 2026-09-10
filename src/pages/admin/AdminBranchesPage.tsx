@@ -16,6 +16,7 @@ import { EntityListPage } from '@/components/entity/EntityListPage'
 import { useBranches, useCreateBranch, useDeleteBranch } from '@/hooks/useBranches'
 import { useAuthStore } from '@/store/auth.store'
 import type { BranchRecord } from '@/api/branches.api'
+import { getRandomPageBackground } from '@/data/pageBackgrounds'
 
 const schema = z.object({
   branchName: z.string().min(2, 'Branch name is required'),
@@ -211,6 +212,7 @@ function DeleteBranchDialog({ branch, onClose }: { branch: BranchRecord | null; 
 export default function AdminBranchesPage() {
   const navigate = useNavigate()
   const gymContext = useAuthStore((s) => s.gymContext)
+  const [backgroundImage] = useState(getRandomPageBackground)
   const { data: branches, isLoading, isError, refetch } = useBranches(gymContext?.businessId)
   const [createOpen, setCreateOpen] = useState(false)
   const [deleteBranch, setDeleteBranch] = useState<BranchRecord | null>(null)
@@ -225,8 +227,13 @@ export default function AdminBranchesPage() {
   })
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-auto p-6">
+    <div className="relative -m-6 flex h-[calc(100%+3rem)] flex-col overflow-hidden lg:-m-8 lg:h-[calc(100%+4rem)]">
+      <div
+        className="pointer-events-none absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `linear-gradient(rgba(248,250,252,0.78), rgba(248,250,252,0.86)), url('${backgroundImage}')` }}
+        aria-hidden="true"
+      />
+      <div className="relative z-10 flex-1 overflow-auto p-6">
         <EntityListPage
           title="Branches"
           description="Branches under your business"

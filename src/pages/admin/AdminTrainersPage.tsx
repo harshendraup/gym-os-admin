@@ -293,23 +293,32 @@ export default function AdminTrainersPage() {
   })
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-auto p-6">
-        <EntityListPage
-          title="Trainers"
-          description="Trainers within your business"
-          columns={columns}
-          data={trainers}
-          isLoading={isLoading}
-          isError={isError}
-          onRetry={refetch}
-          emptyMessage="No trainers yet. Add the first one."
-          actions={
-            <Button size="sm" onClick={() => setCreateOpen(true)}>
-              <Plus className="mr-1.5 h-4 w-4" /> Add Trainer
-            </Button>
-          }
-        />
+    <div className="-m-6 flex h-[calc(100%+3rem)] flex-col lg:-m-8 lg:h-[calc(100%+4rem)]">
+      <div
+        className="relative flex-1 overflow-auto bg-cover bg-center bg-fixed p-6"
+        style={{
+          backgroundImage: "linear-gradient(rgba(248,250,252,0.68), rgba(248,250,252,0.78)), url('/images/hero-ai.jpeg')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div className="relative z-10">
+          <EntityListPage
+            title="Trainers"
+            description="Trainers within your business"
+            columns={columns}
+            data={trainers}
+            isLoading={isLoading}
+            isError={isError}
+            onRetry={refetch}
+            emptyMessage="No trainers yet. Add the first one."
+            actions={
+              <Button size="sm" onClick={() => setCreateOpen(true)}>
+                <Plus className="mr-1.5 h-4 w-4" /> Add Trainer
+              </Button>
+            }
+          />
+        </div>
       </div>
 
       <CreateScopedUserDialog

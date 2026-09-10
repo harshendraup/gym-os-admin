@@ -57,8 +57,18 @@ export default function AdminDashboardPage() {
   }, [members])
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-auto p-6 space-y-6">
+    <div className="relative -m-6 flex h-[calc(100%+3rem)] flex-col overflow-hidden lg:-m-8 lg:h-[calc(100%+4rem)]">
+      <video
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+        src="/videos/gym-training.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-hidden="true"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-slate-50/75" aria-hidden="true" />
+      <div className="relative z-10 flex-1 overflow-auto p-6 space-y-6">
         <Card>
           <CardContent className="flex items-center gap-3 p-5">
             {business?.businessLogo ? (

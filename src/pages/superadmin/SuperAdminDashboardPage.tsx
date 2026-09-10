@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Building2, ShieldCheck, UserCog, Users, Dumbbell } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,8 +10,10 @@ import { businessRegistryApi } from '@/api/business-registry.api'
 import { useRoles } from '@/hooks/useRoles'
 import { useUsersByRole } from '@/hooks/useUsers'
 import { groupByMonth } from '@/lib/chart-utils'
+import { getRandomPageBackground } from '@/data/pageBackgrounds'
 
 export default function SuperAdminDashboardPage() {
+  const [backgroundImage] = useState(getRandomPageBackground)
   const { data: businesses = [], isLoading: businessesLoading } = useQuery({
     queryKey: ['businesses'],
     queryFn: () => businessRegistryApi.list(),
@@ -55,9 +57,14 @@ export default function SuperAdminDashboardPage() {
   }, [members])
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="relative -m-6 flex h-[calc(100%+3rem)] flex-col overflow-hidden lg:-m-8 lg:h-[calc(100%+4rem)]">
+      <div
+        className="pointer-events-none absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `linear-gradient(rgba(248,250,252,0.78), rgba(248,250,252,0.86)), url('${backgroundImage}')` }}
+        aria-hidden="true"
+      />
       {/* <Header title="Dashboard" /> */}
-      <div className="flex-1 overflow-auto p-6 space-y-6">
+      <div className="relative z-10 flex-1 overflow-auto p-6 space-y-6">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {stats.map((s) => (
             <Card key={s.label}>

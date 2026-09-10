@@ -264,7 +264,7 @@ export const pricingSchedule = [
 export const pricingFaqs = [
   {
     q: 'What does the one-time setup fee actually buy?',
-    a: 'The build of your two member apps — iOS at ₹29,999 and Android at ₹14,999, ₹44,444 for both — including submission to the App Store and Google Play. It is billed 50% on signing and 50% when the platform goes live.',
+    a: 'The build of your two member apps, including submission to the App Store and Google Play. Contact support for a tailored quote and payment schedule.',
   },
   {
     q: 'What happens if we go past 200 members?',

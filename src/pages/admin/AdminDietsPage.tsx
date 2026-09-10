@@ -107,8 +107,13 @@ export default function AdminDietsPage() {
   }, [foods.data, foodSearch])
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-auto p-6">
+    <div className="relative -m-6 flex h-[calc(100%+3rem)] flex-col overflow-hidden lg:-m-8 lg:h-[calc(100%+4rem)]">
+      <div
+        className="pointer-events-none absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: "linear-gradient(rgba(248,250,252,0.78), rgba(248,250,252,0.84)), url('/images/diet-nutrition.jpeg')" }}
+        aria-hidden="true"
+      />
+      <div className="relative z-10 flex-1 overflow-auto p-6">
         <Tabs defaultValue="foods" className="space-y-4">
           <TabsList>
             <TabsTrigger value="foods">

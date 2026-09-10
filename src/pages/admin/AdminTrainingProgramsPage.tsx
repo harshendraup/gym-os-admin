@@ -170,9 +170,19 @@ export default function AdminTrainingProgramsPage() {
   }, [exercises.data, exerciseSearch])
 
   return (
-    <div className="flex flex-col h-full">
-      {/* <Header title="Training Programs" /> */}
-      <div className="flex-1 overflow-auto p-6">
+    <div className="relative -m-6 flex h-[calc(100%+3rem)] flex-col overflow-hidden lg:-m-8 lg:h-[calc(100%+4rem)]">
+      <video
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+        src="/videos/gym-training.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-hidden="true"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-slate-50/75" aria-hidden="true" />
+      <div className="relative z-10 flex-1 overflow-auto p-6">
+        {/* <Header title="Training Programs" /> */}
         <Tabs defaultValue="exercises" className="space-y-4">
           <TabsList>
             <TabsTrigger value="exercises">

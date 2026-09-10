@@ -48,20 +48,6 @@ function Reveal({ children, delay = 0, className = '' }: { children: React.React
   )
 }
 
-/** ₹44,444 — grouped the Indian way, matching the currency invoices are in. */
-const inr = new Intl.NumberFormat('en-IN', {
-  style: 'currency',
-  currency: 'INR',
-  maximumFractionDigits: 0,
-})
-
-/**
- * Rounded to the rupee, which is how the agreement's own schedule states it
- * (₹22,499 → ₹4,050 GST). Derived rather than stored so the page can never
- * quote a tax figure that disagrees with the rate beside it.
- */
-const withGst = (amount: number) => Math.round(amount * (1 + pricingMeta.gstPercent / 100))
-
 const SETUP_TOTAL = pricingSetup.reduce((sum, item) => sum + item.amount, 0)
 
 /** `icon` keys in siteContent kept as strings so the data file stays presentation-free. */
@@ -117,11 +103,7 @@ function FaqItem({ q, a, defaultOpen }: { q: string; a: string; defaultOpen?: bo
  * decides how they are laid out.
  */
 export default function PricingPage() {
-  // The rate card is quoted ex-GST and every invoice adds 18%. Showing only
-  // the ex-GST number understates what a gym actually pays, so the toggle
-  // lets the real figure be read directly instead of worked out.
-  const [inclGst, setInclGst] = useState(false)
-  const price = (amount: number) => inr.format(inclGst ? withGst(amount) : amount)
+  const price = (_amount: number) => 'Contact Support'
 
   return (
     <div className="min-h-screen text-white" style={{ background: '#0B0F1A' }}>
@@ -166,35 +148,10 @@ export default function PricingPage() {
             </p>
           </Reveal>
 
-          {/* GST toggle */}
           <Reveal delay={240}>
             <div className="mt-10 flex flex-col items-center gap-3">
-              <div
-                className="inline-flex rounded-xl p-1"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)' }}
-              >
-                {[
-                  { value: false, label: 'Excl. GST' },
-                  { value: true, label: `Incl. ${pricingMeta.gstPercent}% GST` },
-                ].map((option) => (
-                  <button
-                    key={option.label}
-                    type="button"
-                    onClick={() => setInclGst(option.value)}
-                    aria-pressed={inclGst === option.value}
-                    className="rounded-lg px-5 py-2 text-sm font-semibold transition-all duration-200"
-                    style={
-                      inclGst === option.value
-                        ? { background: 'linear-gradient(135deg, #BF7335 0%, #A04D3A 100%)', color: '#fff' }
-                        : { color: '#A6B0C0' }
-                    }
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
               <span className="text-xs font-semibold" style={{ color: '#E7A66C' }}>
-                GST at {pricingMeta.gstPercent}% is added to every invoice
+                Contact support for a tailored quote
               </span>
             </div>
           </Reveal>
@@ -456,7 +413,7 @@ export default function PricingPage() {
         <Reveal>
           <h2 className="text-2xl sm:text-3xl font-bold">When each payment falls due.</h2>
           <p className="mt-3 max-w-2xl text-[15px] leading-7" style={{ color: '#C9D3DF' }}>
-            The whole schedule, from signature to steady state. Amounts shown exclude GST.
+            The whole schedule, from signature to steady state. Contact support for current pricing.
           </p>
         </Reveal>
 
@@ -469,7 +426,7 @@ export default function PricingPage() {
             <table className="w-full min-w-[620px] border-collapse text-left">
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                  {['', 'When', 'What', 'Amount', `GST @${pricingMeta.gstPercent}%`, 'Total'].map((heading, i) => (
+                  {['', 'When', 'What', 'Quote'].map((heading, i) => (
                     <th
                       key={heading || i}
                       className={`px-5 py-4 text-[13px] font-semibold uppercase tracking-wider ${i >= 3 ? 'text-right' : ''}`}
@@ -496,16 +453,8 @@ export default function PricingPage() {
                       <div className="text-sm font-semibold">{row.label}</div>
                       <div className="mt-0.5 text-xs leading-5" style={{ color: '#8A93A3' }}>{row.detail}</div>
                     </td>
-                    <td className="px-5 py-4 text-right text-sm whitespace-nowrap" style={{ color: '#C9D3DF' }}>
-                      {inr.format(row.amount)}
-                      {'recurring' in row && row.recurring ? '/mo' : ''}
-                    </td>
-                    <td className="px-5 py-4 text-right text-sm whitespace-nowrap" style={{ color: '#8A93A3' }}>
-                      {inr.format(withGst(row.amount) - row.amount)}
-                    </td>
-                    <td className="px-5 py-4 text-right text-sm font-bold whitespace-nowrap" style={{ color: '#E7A66C' }}>
-                      {inr.format(withGst(row.amount))}
-                      {'recurring' in row && row.recurring ? '/mo' : ''}
+                    <td colSpan={3} className="px-5 py-4 text-right text-sm font-bold whitespace-nowrap" style={{ color: '#E7A66C' }}>
+                      Contact Support
                     </td>
                   </tr>
                 ))}

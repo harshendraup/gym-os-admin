@@ -11,9 +11,11 @@ import { useMemberships, useDeleteMembership } from '@/hooks/useMemberships'
 import { useBranches } from '@/hooks/useBranches'
 import { useAuthStore } from '@/store/auth.store'
 import type { MembershipRecord } from '@/api/memberships.api'
+import { getRandomPageBackground } from '@/data/pageBackgrounds'
 
 export default function AdminMembershipsPage() {
   const gymContext = useAuthStore((s) => s.gymContext)
+  const [backgroundImage] = useState(getRandomPageBackground)
   const { data: branches = [] } = useBranches(gymContext?.businessId)
   const [branchFilter, setBranchFilter] = useState('')
 
@@ -29,9 +31,14 @@ export default function AdminMembershipsPage() {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="relative -m-6 flex h-[calc(100%+3rem)] flex-col overflow-hidden lg:-m-8 lg:h-[calc(100%+4rem)]">
+      <div
+        className="pointer-events-none absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `linear-gradient(rgba(248,250,252,0.78), rgba(248,250,252,0.86)), url('${backgroundImage}')` }}
+        aria-hidden="true"
+      />
       {/* <Header title="Memberships" /> */}
-      <div className="flex-1 overflow-auto p-6">
+      <div className="relative z-10 flex-1 overflow-auto p-6">
         <div className="space-y-6 animate-fade-in">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
