@@ -92,6 +92,44 @@ function round1(value: number) {
   return Math.round(value * 10) / 10
 }
 
+function inferDayModeFromPlan(days: DietPlanRecord['days'] = []) {
+  if (!days || days.length <= 1) return 'same'
+
+  const signature = (day: DietPlanRecord['days'][number]) => JSON.stringify({
+    isRestDay: day.isRestDay,
+    meals: day.meals.map((meal) => ({
+      mealType: meal.mealType,
+      mealName: meal.mealName,
+      mealTime: meal.mealTime,
+      sortOrder: meal.sortOrder,
+      items: meal.items.map((item) => ({
+        foodId: item.foodId,
+        foodName: item.foodName,
+        quantity: item.quantity,
+        unit: item.unit,
+        calories: item.calories,
+        protein: item.protein,
+        carbs: item.carbs,
+        fat: item.fat,
+      })),
+      alternatives: meal.alternatives.map((alt) => ({
+        foodId: alt.foodId,
+        foodName: alt.foodName,
+        quantity: alt.quantity,
+        unit: alt.unit,
+        calories: alt.calories,
+        protein: alt.protein,
+        carbs: alt.carbs,
+        fat: alt.fat,
+      })),
+    })),
+  })
+
+  const first = signature(days[0])
+  const anyCustom = days.some((d) => signature(d) !== first)
+  return anyCustom ? 'custom' : 'same'
+}
+
 /** Rescales a meal item/alternative's macros proportionally to a new quantity — same math FoodPicker uses when first adding an item. */
 function scaleMealItem<T extends { quantity: number; calories: number; protein: number; carbs: number; fat: number }>(
   item: T,
@@ -199,52 +237,51 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
     )
     setFoodPreference(plan?.metaDietPlan?.foodPreference ?? (!isEdit ? assessment?.foodPreference ?? '' : ''))
     setError('')
-    // New plans default to "same every day" (the common case); editing a
-    // plan that already has more than one distinct day keeps "custom" so its
-    // real structure isn't hidden behind the single-day view.
-    setDayMode(isEdit && (plan?.days?.length ?? 0) > 1 ? 'custom' : 'same')
-    setRepeatDays('7')
-    setDays(
-      (plan?.days ?? []).map((d) => ({
+
+    const loadedDays = (plan?.days ?? []).map((d) => ({
+      localId: nextLocalId(),
+      dayNumber: d.dayNumber,
+      dayName: d.dayName ?? undefined,
+      isRestDay: d.isRestDay,
+      notes: d.notes ?? undefined,
+      meals: d.meals.map((m) => ({
         localId: nextLocalId(),
-        dayNumber: d.dayNumber,
-        dayName: d.dayName ?? undefined,
-        isRestDay: d.isRestDay,
-        notes: d.notes ?? undefined,
-        meals: d.meals.map((m) => ({
+        mealType: m.mealType,
+        mealName: m.mealName ?? undefined,
+        mealTime: m.mealTime ?? undefined,
+        notes: m.notes ?? undefined,
+        items: m.items.map((i) => ({
           localId: nextLocalId(),
-          mealType: m.mealType,
-          mealName: m.mealName ?? undefined,
-          mealTime: m.mealTime ?? undefined,
-          notes: m.notes ?? undefined,
-          items: m.items.map((i) => ({
-            localId: nextLocalId(),
-            foodId: i.foodId ?? undefined,
-            foodName: i.foodName,
-            quantity: Number(i.quantity),
-            unit: i.unit,
-            calories: Number(i.calories),
-            protein: Number(i.protein),
-            carbs: Number(i.carbs),
-            fat: Number(i.fat),
-            sortOrder: i.sortOrder,
-            notes: i.notes ?? undefined,
-          })),
-          alternatives: m.alternatives.map((a) => ({
-            localId: nextLocalId(),
-            foodId: a.foodId ?? undefined,
-            foodName: a.foodName,
-            quantity: Number(a.quantity),
-            unit: a.unit,
-            calories: Number(a.calories),
-            protein: Number(a.protein),
-            carbs: Number(a.carbs),
-            fat: Number(a.fat),
-            sortOrder: a.sortOrder,
-          })),
+          foodId: i.foodId ?? undefined,
+          foodName: i.foodName,
+          quantity: Number(i.quantity),
+          unit: i.unit,
+          calories: Number(i.calories),
+          protein: Number(i.protein),
+          carbs: Number(i.carbs),
+          fat: Number(i.fat),
+          sortOrder: i.sortOrder,
+          notes: i.notes ?? undefined,
         })),
-      }))
-    )
+        alternatives: m.alternatives.map((a) => ({
+          localId: nextLocalId(),
+          foodId: a.foodId ?? undefined,
+          foodName: a.foodName,
+          quantity: Number(a.quantity),
+          unit: a.unit,
+          calories: Number(a.calories),
+          protein: Number(a.protein),
+          carbs: Number(a.carbs),
+          fat: Number(a.fat),
+          sortOrder: a.sortOrder,
+        })),
+      })),
+    }))
+
+    const inferredMode = inferDayModeFromPlan(plan?.days ?? [])
+    setDayMode(inferredMode)
+    setRepeatDays(inferredMode === 'same' ? String(Math.max(plan?.days?.length ?? 1, 1)) : '7')
+    setDays(inferredMode === 'same' && loadedDays.length > 1 ? [loadedDays[0]] : loadedDays)
     setSupplements(
       (plan?.supplements ?? []).map((s) => ({
         localId: nextLocalId(),
@@ -410,6 +447,7 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
   }
 
   const buildPayload = () => ({
+    branchId: branchId ? Number(branchId) : undefined,
     name,
     goal,
     assessmentId: !isEdit && assessment ? assessment.id : undefined,
@@ -509,7 +547,7 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
                 </p>
               )}
               <FormSection title="Basics" description="What this plan is called and who it's for.">
-                {!fixedBranchId && !isEdit && (
+                {!fixedBranchId && (
                   <div className="space-y-1.5">
                     <Label>Branch</Label>
                     <Select value={branchId} onValueChange={setBranchId}>
@@ -650,6 +688,11 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
                 </div>
                 <p className="mt-1.5 text-xs text-slate-500">
                   {dayMode === 'same'
+                    ? 'This plan follows the same daily diet for every scheduled day.'
+                    : 'Add each day separately and build different meals for each — e.g. a weekly plan that varies day to day.'}
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {dayMode === 'same'
                     ? 'Build one day\'s meals below — it\'ll be used for every day of the plan.'
                     : 'Add each day separately and build different meals for each — e.g. a weekly plan that varies day to day.'}
                 </p>
@@ -670,6 +713,7 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
                 <DayCard
                   key={day.localId}
                   day={day}
+                  dayMode={dayMode}
                   dayTotal={dayTotals[dayIndex]}
                   target={hasTarget ? { calories: targets.calories ?? 0, protein: targets.protein ?? 0, carbs: targets.carbs ?? 0, fat: targets.fat ?? 0 } : null}
                   onRemove={() => removeDay(day.localId)}
@@ -771,14 +815,18 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
                       ? `1 day, repeated for ${Math.min(31, Math.max(1, Math.round(Number(repeatDays)) || 1))} days · ${days[0].meals.length} meals/day`
                       : `${days.length} day${days.length === 1 ? '' : 's'} · ${days.reduce((a, d) => a + d.meals.length, 0)} meals total`}
                   </p>
-                  {days.map((day) => (
-                    <div key={day.localId} className="rounded-lg border border-slate-100 px-3 py-2">
-                      <p className="text-sm font-semibold text-slate-800">{day.dayName || `Day ${day.dayNumber}`}</p>
-                      <p className="text-xs text-slate-500">
-                        {day.meals.length === 0 ? 'No meals added' : day.meals.map((m) => m.mealType).join(' · ')}
-                      </p>
-                    </div>
-                  ))}
+                  {days
+                    .filter((_day, idx) => dayMode !== 'same' || idx === 0)
+                    .map((day) => (
+                      <div key={day.localId} className="rounded-lg border border-slate-100 px-3 py-2">
+                        <p className="text-sm font-semibold text-slate-800">
+                          {dayMode === 'same' ? 'Every day' : (day.dayName || `Day ${day.dayNumber}`)}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {day.meals.length === 0 ? 'No meals added' : day.meals.map((m) => m.mealType).join(' · ')}
+                        </p>
+                      </div>
+                    ))}
                 </div>
               )}
               {!hasTarget && (
@@ -850,10 +898,11 @@ function Stat({ icon: Icon, label }: { icon: any; label: string }) {
 }
 
 function DayCard({
-  day, dayTotal, target, onRemove, hideRemove, onAddMeal, onRemoveMeal, onUpdateMeal,
+  day, dayMode, dayTotal, target, onRemove, hideRemove, onAddMeal, onRemoveMeal, onUpdateMeal,
   onAddItem, onRemoveItem, onUpdateItemQuantity, onAddAlternative, onRemoveAlternative, onUpdateAlternativeQuantity,
 }: {
   day: BuilderDay
+  dayMode: 'same' | 'custom'
   dayTotal: { calories: number; protein: number; carbs: number; fat: number }
   /** The plan-wide target (its own daily average once foods exist) — used to show this day's own % progress toward it. */
   target: { calories: number; protein: number; carbs: number; fat: number } | null
@@ -871,12 +920,13 @@ function DayCard({
   onUpdateAlternativeQuantity: (mealLocalId: number, altLocalId: number, quantity: number) => void
 }) {
   const [expanded, setExpanded] = useState(true)
+  const visibleDayLabel = dayMode === 'same' ? 'Every day' : (day.dayName || `Day ${day.dayNumber}`)
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 shadow-sm">
       <div className="flex items-center justify-between gap-2 border-l-4 border-primary bg-primary/5 px-3 py-2.5">
         <button type="button" className="flex flex-1 items-center gap-2 text-left" onClick={() => setExpanded((e) => !e)}>
           {expanded ? <ChevronUp className="h-4 w-4 shrink-0 text-primary" /> : <ChevronDown className="h-4 w-4 shrink-0 text-primary" />}
-          <span className="text-sm font-bold text-slate-900">{day.dayName || `Day ${day.dayNumber}`}</span>
+          <span className="text-sm font-bold text-slate-900">{visibleDayLabel}</span>
           <span className="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-slate-500">
             {Math.round(dayTotal.calories)} kcal · {Math.round(dayTotal.protein)}g protein
           </span>

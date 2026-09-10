@@ -205,7 +205,7 @@ export interface CreateDietPlanPayload {
   hydration?: HydrationInput
 }
 
-export type UpdateDietPlanPayload = Partial<Omit<CreateDietPlanPayload, 'branchId'>> & {
+export type UpdateDietPlanPayload = Partial<CreateDietPlanPayload> & {
   createNewVersion?: boolean
 }
 

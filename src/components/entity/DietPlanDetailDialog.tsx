@@ -48,6 +48,73 @@ export function DietPlanDetailDialog({
 
   const isMacroOnly = plan.days.length === 0
 
+  const normalizeRepeatedDays = () => {
+    if (!plan.days || plan.days.length <= 1) return plan.days
+
+    const canonical = JSON.stringify({
+      meals: plan.days[0].meals.map((meal) => ({
+        mealType: meal.mealType,
+        mealName: meal.mealName,
+        mealTime: meal.mealTime,
+        notes: meal.notes,
+        items: meal.items.map((item) => ({
+          foodName: item.foodName,
+          quantity: item.quantity,
+          unit: item.unit,
+          calories: item.calories,
+          protein: item.protein,
+          carbs: item.carbs,
+          fat: item.fat,
+          notes: item.notes,
+        })),
+        alternatives: meal.alternatives.map((alt) => ({
+          foodName: alt.foodName,
+          quantity: alt.quantity,
+          unit: alt.unit,
+          calories: alt.calories,
+          protein: alt.protein,
+          carbs: alt.carbs,
+          fat: alt.fat,
+        })),
+      })),
+    })
+
+    const allSame = plan.days.every((day) => {
+      const current = JSON.stringify({
+        meals: day.meals.map((meal) => ({
+          mealType: meal.mealType,
+          mealName: meal.mealName,
+          mealTime: meal.mealTime,
+          notes: meal.notes,
+          items: meal.items.map((item) => ({
+            foodName: item.foodName,
+            quantity: item.quantity,
+            unit: item.unit,
+            calories: item.calories,
+            protein: item.protein,
+            carbs: item.carbs,
+            fat: item.fat,
+            notes: item.notes,
+          })),
+          alternatives: meal.alternatives.map((alt) => ({
+            foodName: alt.foodName,
+            quantity: alt.quantity,
+            unit: alt.unit,
+            calories: alt.calories,
+            protein: alt.protein,
+            carbs: alt.carbs,
+            fat: alt.fat,
+          })),
+        })),
+      })
+      return current === canonical
+    })
+
+    return allSame ? [plan.days[0]] : plan.days
+  }
+
+  const displayDays = normalizeRepeatedDays()
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden p-0 sm:max-w-xl">
@@ -107,15 +174,16 @@ export function DietPlanDetailDialog({
             </div>
           )}
 
-          {plan.days.length > 0 && (
+          {displayDays.length > 0 && (
             <div className="space-y-3">
               <h4 className="flex items-center gap-1.5 text-sm font-semibold text-slate-900">
                 <Utensils className="h-4 w-4 text-slate-400" /> Meal Schedule
               </h4>
-              {plan.days.map((day) => (
+              {displayDays.map((day) => (
                 <div key={day.id} className="rounded-lg border border-slate-100">
                   <div className="bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700">
-                    {day.dayName || `Day ${day.dayNumber}`}{day.isRestDay && <span className="ml-1.5 text-slate-400">(Rest day)</span>}
+                    {displayDays.length === 1 && plan.days.length > 1 ? 'Every day' : (day.dayName || `Day ${day.dayNumber}`)}
+                    {day.isRestDay && <span className="ml-1.5 text-slate-400">(Rest day)</span>}
                   </div>
                   <div className="divide-y divide-slate-50">
                     {day.meals.map((meal) => (
