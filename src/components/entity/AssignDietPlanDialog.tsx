@@ -83,8 +83,13 @@ export function AssignDietPlanDialog({
     [trainerOptions, selectedMember?.branchId]
   )
   const branchPlans = useMemo(
-    () => planOptions.filter((p) => p.branchId === Number(selectedMember?.branchId)),
-    [planOptions, selectedMember?.branchId]
+    () => planOptions.filter((p) => (
+      p.branchId === Number(selectedMember?.branchId)
+      && p.status === 'Active'
+      && p.memberId !== null
+      && Number(p.memberId) === Number(selectedMember?.id)
+    )),
+    [planOptions, selectedMember?.branchId, selectedMember?.id]
   )
 
   const onSubmit = (values: FormValues) => {
@@ -108,7 +113,7 @@ export function AssignDietPlanDialog({
           <DialogTitle>Assign a Diet Plan</DialogTitle>
         </DialogHeader>
         <p className="-mt-2 text-sm text-muted-foreground">
-          Put an existing diet plan onto one member's schedule, optionally coached by a trainer.
+          Assign an approved, member-specific diet plan to the member's schedule.
         </p>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {!fixedMember && (

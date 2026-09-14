@@ -72,6 +72,28 @@ interface BuilderDay extends Omit<PlanDayInput, 'meals'> {
   meals: BuilderMeal[]
 }
 
+function builderDaysFromPlan(plan: DietPlanRecord): BuilderDay[] {
+  return (plan.days ?? []).map((d) => ({
+    localId: nextLocalId(), dayNumber: d.dayNumber, dayName: d.dayName ?? undefined,
+    isRestDay: d.isRestDay, notes: d.notes ?? undefined,
+    meals: d.meals.map((m) => ({
+      localId: nextLocalId(), mealType: m.mealType, mealName: m.mealName ?? undefined,
+      mealTime: m.mealTime ?? undefined, notes: m.notes ?? undefined,
+      items: m.items.map((i) => ({
+        localId: nextLocalId(), foodId: i.foodId ?? undefined, foodName: i.foodName,
+        quantity: Number(i.quantity), unit: i.unit, calories: Number(i.calories),
+        protein: Number(i.protein), carbs: Number(i.carbs), fat: Number(i.fat),
+        sortOrder: i.sortOrder, notes: i.notes ?? undefined,
+      })),
+      alternatives: m.alternatives.map((a) => ({
+        localId: nextLocalId(), foodId: a.foodId ?? undefined, foodName: a.foodName,
+        quantity: Number(a.quantity), unit: a.unit, calories: Number(a.calories),
+        protein: Number(a.protein), carbs: Number(a.carbs), fat: Number(a.fat), sortOrder: a.sortOrder,
+      })),
+    })),
+  }))
+}
+
 interface CreateDietPlanDialogProps {
   open: boolean
   onClose: () => void
@@ -86,6 +108,7 @@ interface CreateDietPlanDialogProps {
    */
   assessment?: NutritionAssessmentRecord | null
   member?: ManagedUser | null
+  templateOptions?: DietPlanRecord[]
 }
 
 function round1(value: number) {
@@ -164,8 +187,9 @@ function sum(items: { calories: string | number; protein: string | number; carbs
  * creates a new version server-side (see DietPlanService.update) rather
  * than mutating history, so this dialog never needs its own versioning UI.
  */
-export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranchId, plan, assessment, member }: CreateDietPlanDialogProps) {
+export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranchId, plan, assessment, member, templateOptions = [] }: CreateDietPlanDialogProps) {
   const isEdit = !!plan
+  const isPersonalized = !!assessment && !!member
   const create = useCreateDietPlan()
   const update = useUpdateDietPlan(plan?.id ?? 0)
   const isPending = create.isPending || update.isPending
@@ -188,6 +212,7 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
   const [branchId, setBranchId] = useState('')
   const [name, setName] = useState('')
   const [nameTouched, setNameTouched] = useState(false)
+  const [templateId, setTemplateId] = useState('')
   const [goal, setGoal] = useState<DietPlanGoal>('Fitness')
   const [description, setDescription] = useState('')
   const [caloriesTarget, setCaloriesTarget] = useState('')
@@ -219,6 +244,7 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
     setGoal(initialGoal)
     setName(plan?.name || (!isEdit ? suggestPlanName(initialGoal, member) : ''))
     setNameTouched(false)
+    setTemplateId('')
     setDescription(plan?.description ?? '')
     setCaloriesTarget(plan?.caloriesTarget ?? (suggestedFromAssessment ? String(suggestedFromAssessment.calories) : ''))
     setProteinTarget(plan?.proteinTarget ?? (suggestedFromAssessment ? String(suggestedFromAssessment.protein) : ''))
@@ -238,45 +264,7 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
     setFoodPreference(plan?.metaDietPlan?.foodPreference ?? (!isEdit ? assessment?.foodPreference ?? '' : ''))
     setError('')
 
-    const loadedDays = (plan?.days ?? []).map((d) => ({
-      localId: nextLocalId(),
-      dayNumber: d.dayNumber,
-      dayName: d.dayName ?? undefined,
-      isRestDay: d.isRestDay,
-      notes: d.notes ?? undefined,
-      meals: d.meals.map((m) => ({
-        localId: nextLocalId(),
-        mealType: m.mealType,
-        mealName: m.mealName ?? undefined,
-        mealTime: m.mealTime ?? undefined,
-        notes: m.notes ?? undefined,
-        items: m.items.map((i) => ({
-          localId: nextLocalId(),
-          foodId: i.foodId ?? undefined,
-          foodName: i.foodName,
-          quantity: Number(i.quantity),
-          unit: i.unit,
-          calories: Number(i.calories),
-          protein: Number(i.protein),
-          carbs: Number(i.carbs),
-          fat: Number(i.fat),
-          sortOrder: i.sortOrder,
-          notes: i.notes ?? undefined,
-        })),
-        alternatives: m.alternatives.map((a) => ({
-          localId: nextLocalId(),
-          foodId: a.foodId ?? undefined,
-          foodName: a.foodName,
-          quantity: Number(a.quantity),
-          unit: a.unit,
-          calories: Number(a.calories),
-          protein: Number(a.protein),
-          carbs: Number(a.carbs),
-          fat: Number(a.fat),
-          sortOrder: a.sortOrder,
-        })),
-      })),
-    }))
+    const loadedDays = plan ? builderDaysFromPlan(plan) : []
 
     const inferredMode = inferDayModeFromPlan(plan?.days ?? [])
     setDayMode(inferredMode)
@@ -298,6 +286,37 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
     setHydrationSource(plan?.hydration?.notes ?? '')
     setReviewVisited(false)
   }, [open, plan, fixedBranchId, isEdit, assessment, suggestedFromAssessment, member])
+
+  const applyTemplate = (id: string) => {
+    const template = templateOptions.find((candidate) => String(candidate.id) === id)
+    if (!template) return
+    setTemplateId(id)
+    const inheritedGoal = assessment?.goal ?? template.goal
+    setGoal(inheritedGoal)
+    if (!nameTouched) setName(suggestPlanName(inheritedGoal, member))
+    setDescription(template.description ?? '')
+    if (!suggestedFromAssessment) {
+      setCaloriesTarget(template.caloriesTarget ?? '')
+      setProteinTarget(template.proteinTarget ?? '')
+      setCarbsTarget(template.carbsTarget ?? '')
+      setFatTarget(template.fatTarget ?? '')
+    }
+    setDietType(assessment?.dietType ?? template.metaDietPlan?.dietType ?? '')
+    setMealsPerDay(assessment?.mealsPerDay ? String(assessment.mealsPerDay) : template.metaDietPlan?.mealsPerDay ? String(template.metaDietPlan.mealsPerDay) : '')
+    setFoodPreference(assessment?.foodPreference ?? template.metaDietPlan?.foodPreference ?? '')
+    const templateDays = builderDaysFromPlan(template)
+    const inferredMode = inferDayModeFromPlan(template.days ?? [])
+    setDayMode(inferredMode)
+    setRepeatDays(inferredMode === 'same' ? String(Math.max(template.days?.length ?? 1, 1)) : '7')
+    setDays(inferredMode === 'same' && templateDays.length > 1 ? [templateDays[0]] : templateDays)
+    setSupplements((template.supplements ?? []).map((s) => ({
+      localId: nextLocalId(), name: s.name, quantity: s.quantity, unit: s.unit ?? undefined,
+      timing: s.timing ?? undefined, frequency: s.frequency ?? undefined, notes: s.notes ?? undefined,
+      sortOrder: s.sortOrder,
+    })))
+    setHydrationMl(template.hydration?.targetMl ?? '')
+    setHydrationSource(template.hydration?.notes ?? '')
+  }
 
   const dayTotals = useMemo(
     () => days.map((d) => sum(d.meals.flatMap((m) => m.items))),
@@ -438,6 +457,7 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
   const removeSupplement = (localId: number) => setSupplements((prev) => prev.filter((s) => s.localId !== localId))
 
   const buildMetaDietPlan = (): DietPlanMeta | undefined => {
+    if (isPersonalized) return undefined
     if (!dietType && !mealsPerDay && !foodPreference) return undefined
     return {
       dietType: dietType || undefined,
@@ -448,6 +468,7 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
 
   const buildPayload = () => ({
     branchId: branchId ? Number(branchId) : undefined,
+    memberId: isPersonalized ? Number(member?.id) : undefined,
     name,
     goal,
     assessmentId: !isEdit && assessment ? assessment.id : undefined,
@@ -460,7 +481,7 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
     fatTarget: fatTarget ? Number(fatTarget) : undefined,
     waterTarget: waterTarget ? Number(waterTarget) : undefined,
     metaDietPlan: buildMetaDietPlan(),
-    planType: (days.length > 0 ? 'Custom' : 'Template') as 'Custom' | 'Template',
+    planType: (isPersonalized || days.length > 0 ? 'Custom' : 'Template') as 'Custom' | 'Template',
     // "Same every day" repeats the one template day dayMode/repeatDays times
     // rather than sending a single day — the backend has no concept of
     // repetition, so the expansion happens here, at submit time.
@@ -494,7 +515,7 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
     hydration: hydrationMl ? { targetMl: Number(hydrationMl), notes: hydrationSource || undefined } : undefined,
   })
 
-  const onSubmit = () => {
+  const onSubmit = (statusOverride: 'Draft' | 'Active' = 'Draft') => {
     setError('')
     if (!isEdit && !branchId) return setError('Select a branch')
     if (!name.trim()) return setError('Plan name is required')
@@ -506,7 +527,7 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
     if (isEdit) {
       update.mutate(payload, { onSuccess: onClose })
     } else {
-      create.mutate({ ...payload, branchId: Number(branchId) }, { onSuccess: onClose })
+      create.mutate({ ...payload, branchId: Number(branchId), status: isPersonalized ? statusOverride : 'Draft' }, { onSuccess: onClose })
     }
   }
 
@@ -546,7 +567,44 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
                   nutrition assessment — adjust anything as needed.
                 </p>
               )}
+              {isPersonalized && assessment && (
+                <FormSection title="Assessment Summary" description="Read-only context from the completed member assessment. Plan targets below remain adjustable.">
+                  <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+                    <SummaryValue label="Assessment date" value={new Date(assessment.createdAt).toLocaleDateString()} />
+                    <SummaryValue label="Goal" value={assessment.goal} />
+                    <SummaryValue label="Current weight" value={assessment.currentWeight ? `${assessment.currentWeight} kg` : 'Not recorded'} />
+                    <SummaryValue label="Height" value={assessment.height ? `${assessment.height} cm` : 'Not recorded'} />
+                    <SummaryValue label="Target weight" value={assessment.targetWeight ? `${assessment.targetWeight} kg` : 'Not recorded'} />
+                    <SummaryValue label="Activity" value={assessment.activityLevel} />
+                    <SummaryValue label="Meals / day" value={assessment.mealsPerDay ? String(assessment.mealsPerDay) : 'Not recorded'} />
+                    <SummaryValue label="Restrictions" value={assessment.foodRestrictions || 'None recorded'} />
+                    <SummaryValue label="Allergies" value={assessment.allergies || 'None recorded'} />
+                    <SummaryValue label="Cooking / budget" value={[assessment.cookingPreference, assessment.budgetPreference].filter(Boolean).join(' · ') || 'Not recorded'} />
+                    <SummaryValue label="Routine" value={[assessment.workoutTime, assessment.wakeTime, assessment.sleepTime].filter(Boolean).join(' · ') || 'Not recorded'} />
+                  </div>
+                  {suggestedFromAssessment && (
+                    <div className="rounded-lg bg-white px-3 py-2 text-xs text-slate-600">
+                      Suggested target: {suggestedFromAssessment.calories} kcal · {suggestedFromAssessment.protein}g protein · {suggestedFromAssessment.carbs}g carbs · {suggestedFromAssessment.fat}g fat
+                    </div>
+                  )}
+                  {assessment.dietNotes || assessment.additionalNotes ? (
+                    <div className="rounded-lg bg-white px-3 py-2 text-xs text-slate-600">
+                      Practitioner notes: {[assessment.dietNotes, assessment.additionalNotes].filter(Boolean).join(' · ')}
+                    </div>
+                  ) : null}
+                </FormSection>
+              )}
               <FormSection title="Basics" description="What this plan is called and who it's for.">
+                {isPersonalized && templateOptions.length > 0 && (
+                  <div className="space-y-1.5">
+                    <Label>Start from template (optional)</Label>
+                    <Select value={templateId} onValueChange={applyTemplate}>
+                      <SelectTrigger><SelectValue placeholder="Build from scratch..." /></SelectTrigger>
+                      <SelectContent>{templateOptions.map((template) => <SelectItem key={template.id} value={String(template.id)}>{template.name}</SelectItem>)}</SelectContent>
+                    </Select>
+                    <p className="text-[11px] text-slate-400">The template supplies meals and foods; the assessment supplies member context and suggested targets.</p>
+                  </div>
+                )}
                 {!fixedBranchId && (
                   <div className="space-y-1.5">
                     <Label>Branch</Label>
@@ -582,29 +640,30 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
                 </div>
               </FormSection>
 
-              <FormSection title="Diet Type & Preferences" description="How the member eats — used to guide which foods and meal timing make sense for this plan.">
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  <div className="space-y-1.5">
-                    <Label>Diet Type</Label>
-                    <Select value={dietType || undefined} onValueChange={(v) => setDietType(v as DietType)}>
-                      <SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger>
-                      <SelectContent>{DIET_TYPES.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
-                    </Select>
+              {!isPersonalized && (
+                <FormSection title="Template Preferences" description="Optional defaults for this reusable branch template.">
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    <div className="space-y-1.5">
+                      <Label>Diet Type</Label>
+                      <Select value={dietType || undefined} onValueChange={(v) => setDietType(v as DietType)}>
+                        <SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger>
+                        <SelectContent>{DIET_TYPES.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Meals / Day</Label>
+                      <Input type="number" min={1} max={8} placeholder="4" value={mealsPerDay} onChange={(e) => setMealsPerDay(e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Food Preference</Label>
+                      <Select value={foodPreference || undefined} onValueChange={setFoodPreference}>
+                        <SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger>
+                        <SelectContent>{FOOD_PREFERENCES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label>Meals / Day</Label>
-                    <Input type="number" min={1} max={8} placeholder="4" value={mealsPerDay} onChange={(e) => setMealsPerDay(e.target.value)} />
-                    <p className="text-[11px] text-slate-400">"Add Day" pre-creates this many meal slots for you.</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Food Preference</Label>
-                    <Select value={foodPreference || undefined} onValueChange={setFoodPreference}>
-                      <SelectTrigger><SelectValue placeholder="Optional" /></SelectTrigger>
-                      <SelectContent>{FOOD_PREFERENCES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </FormSection>
+                </FormSection>
+              )}
 
               <FormSection title="Schedule" description="Optional — when this plan starts and ends for the member.">
                 <div className="grid grid-cols-2 gap-3">
@@ -858,8 +917,13 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
           {error ? <p className="text-xs text-red-600">{error}</p> : <span />}
           <div className="flex gap-2">
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="button" onClick={onSubmit} disabled={isPending || !hasTarget || !hasAnyFood || !reviewVisited}>
-              {isPending ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Diet Plan'}
+            {isPersonalized && !isEdit && (
+              <Button type="button" variant="outline" onClick={() => onSubmit('Draft')} disabled={isPending || !hasTarget || !hasAnyFood || !reviewVisited}>
+                Save Draft
+              </Button>
+            )}
+            <Button type="button" onClick={() => onSubmit(isPersonalized ? 'Active' : 'Draft')} disabled={isPending || !hasTarget || !hasAnyFood || !reviewVisited}>
+              {isPending ? 'Saving...' : isPersonalized && !isEdit ? 'Review & Activate' : isEdit ? 'Save Changes' : 'Create Template'}
             </Button>
           </div>
         </DialogFooter>
@@ -894,6 +958,15 @@ function Stat({ icon: Icon, label }: { icon: any; label: string }) {
     <span className="flex items-center gap-1.5 text-slate-700">
       <Icon className="h-3.5 w-3.5 text-primary" /> {label}
     </span>
+  )
+}
+
+function SummaryValue({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{label}</p>
+      <p className="mt-0.5 truncate text-slate-700" title={value}>{value}</p>
+    </div>
   )
 }
 

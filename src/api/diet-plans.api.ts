@@ -94,6 +94,7 @@ export interface DietPlanRecord {
   createdBy: number | null
   createdByRole: 'superadmin' | 'admin' | 'sub_admin'
   assessmentId: number | null
+  memberId: number | null
   parentPlanId: number | null
   name: string
   goal: DietPlanGoal
@@ -184,6 +185,7 @@ export interface HydrationInput {
 
 export interface CreateDietPlanPayload {
   branchId: number
+  memberId?: number
   assessmentId?: number
   name: string
   goal: DietPlanGoal

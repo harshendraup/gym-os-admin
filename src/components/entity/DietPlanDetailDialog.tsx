@@ -229,9 +229,13 @@ export function DietPlanDetailDialog({
         </div>
 
         <div className="flex shrink-0 flex-col gap-2 border-t border-slate-100 bg-slate-50/60 px-6 py-4 sm:flex-row">
-          <Button className="flex-1" onClick={() => onAssign(plan)}>
-            <UserPlus className="mr-1.5 h-4 w-4" /> Assign to Member
-          </Button>
+          {plan.memberId ? (
+            <Button className="flex-1" onClick={() => onAssign(plan)}>
+              <UserPlus className="mr-1.5 h-4 w-4" /> Assign to Member
+            </Button>
+          ) : (
+            <p className="flex-1 self-center text-xs text-slate-500">Reusable template — select it from a member's completed assessment to create a personalized plan.</p>
+          )}
           <Button variant="outline" onClick={() => onEdit(plan)}>
             <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit
           </Button>

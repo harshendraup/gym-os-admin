@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Building2, UserCog, Users, Dumbbell } from 'lucide-react'
+import { Building2, UserCog, Users, Dumbbell, Instagram, MessageCircle, ArrowUpRight, Megaphone } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CategoryBarChart } from '@/components/charts/CategoryBarChart'
 import { GrowthAreaChart } from '@/components/charts/GrowthAreaChart'
@@ -11,6 +11,7 @@ import { useBranches } from '@/hooks/useBranches'
 import { useAuthStore } from '@/store/auth.store'
 import { businessRegistryApi } from '@/api/business-registry.api'
 import { groupByMonth } from '@/lib/chart-utils'
+import { siteContact } from '@/data/siteContent'
 
 export default function AdminDashboardPage() {
   const { subAdminRole, trainerRole, memberRole } = useRoles()
@@ -55,6 +56,9 @@ export default function AdminDashboardPage() {
       { name: 'Frozen', value: counts.Frozen, color: '#3B82F6' },
     ]
   }, [members])
+
+  const instagramLink = siteContact.socials.find((social) => social.label === 'Instagram')?.href ?? '#'
+  const whatsappLink = `${siteContact.whatsappHref}?text=${encodeURIComponent(`Hi, I would like to know more about ${business?.businessName ?? 'your gym'} membership.`)}`
 
   return (
     <div className="relative -m-6 flex h-[calc(100%+3rem)] flex-col overflow-hidden lg:-m-8 lg:h-[calc(100%+4rem)]">
@@ -135,6 +139,44 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        <Card className="overflow-hidden">
+          <CardContent className="p-0">
+            <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-fuchsia-500 via-rose-500 to-amber-400 text-white shadow-sm">
+                  <Megaphone className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-slate-900">Marketing shortcuts</h3>
+                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">Ready to use</span>
+                  </div>
+                  <p className="mt-1 max-w-xl text-xs leading-5 text-slate-500">
+                    Keep your gym visible between visits with a social post and a direct member follow-up.
+                  </p>
+                </div>
+              </div>
+              <span className="hidden text-right text-[11px] text-slate-400 sm:block">Two channels · one quick follow-up</span>
+            </div>
+            <div className="grid gap-3 border-t border-slate-100 bg-slate-50/60 p-4 sm:grid-cols-2">
+              <a href={instagramLink} target="_blank" rel="noreferrer" className="group flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 transition-colors hover:border-fuchsia-300 hover:bg-fuchsia-50/50">
+                <span className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-fuchsia-100 text-fuchsia-600"><Instagram className="h-4 w-4" /></span>
+                  <span><span className="block text-sm font-medium text-slate-800">Share on Instagram</span><span className="block text-xs text-slate-500">Showcase today’s training floor</span></span>
+                </span>
+                <ArrowUpRight className="h-4 w-4 text-slate-400 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-fuchsia-600" />
+              </a>
+              <a href={whatsappLink} target="_blank" rel="noreferrer" className="group flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 transition-colors hover:border-emerald-300 hover:bg-emerald-50/50">
+                <span className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600"><MessageCircle className="h-4 w-4" /></span>
+                  <span><span className="block text-sm font-medium text-slate-800">Follow up on WhatsApp</span><span className="block text-xs text-slate-500">Start a membership conversation</span></span>
+                </span>
+                <ArrowUpRight className="h-4 w-4 text-slate-400 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-emerald-600" />
+              </a>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

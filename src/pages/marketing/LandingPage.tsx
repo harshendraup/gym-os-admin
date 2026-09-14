@@ -67,7 +67,7 @@ export default function LandingPage() {
           ))}
           <div
             className="absolute inset-0"
-            style={{ background: 'linear-gradient(180deg, rgba(11,15,26,0.55) 0%, rgba(11,15,26,0.65) 55%, #0B0F1A 100%)' }}
+            style={{ background: 'linear-gradient(180deg, rgba(11,15,26,0.35) 0%, rgba(11,15,26,0.55) 55%, #0B0F1A 100%)' }}
           />
           <div
             className="absolute inset-0"
@@ -85,13 +85,13 @@ export default function LandingPage() {
             style={{ background: 'rgba(191,115,53,0.28)', color: '#F3DDC6', backdropFilter: 'blur(8px)' }}
           >
             <Sparkles className="h-3.5 w-3.5" />
-            AI-Driven Gym Management
+            AI Driven Gym Management
           </div>
           <h1 className="mt-6 max-w-2xl text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight drop-shadow-lg">
-            AI-driven tracking, coaching &amp; performance in one platform.
+            AI driven tracking, coaching &amp; performance in one platform.
           </h1>
           <p className="mt-5 max-w-xl text-base sm:text-lg leading-7 drop-shadow" style={{ color: '#EFDAC8' }}>
-            Manage businesses, memberships, and training from one unified dashboard — built for gym owners who want data behind every decision.
+            Manage businesses, memberships, and training from one unified dashboard, built for gym owners who want data behind every decision.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <button

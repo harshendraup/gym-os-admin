@@ -6,7 +6,7 @@ const PAGE_BACKGROUNDS = [
   '/images/hero-ai.jpeg',
   '/images/hero-gym.jpeg',
   '/images/hero-kitchen-scan.webp',
-  '/images/zym-creative-6.png',
+  '/images/zym-creative-6.jpg',
 ] as const
 
 export function getRandomPageBackground() {

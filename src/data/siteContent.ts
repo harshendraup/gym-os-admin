@@ -139,7 +139,7 @@ export const aboutWhyUs: ReadonlyArray<{
     body: 'Every branch, every member and every payment in a single place. Open a location, compare two of them, or check today’s collections without switching tools or exporting anything.',
     cta: 'See how it works',
     href: '/pricing',
-    image: '/images/zym-creative-6.png',
+    image: '/images/zym-creative-6.jpg',
   },
   {
     id: 'app',

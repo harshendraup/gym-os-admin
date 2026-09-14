@@ -9,5 +9,5 @@ export const heroImages: HeroImage[] = [
   { src: '/images/gym-creative-2.webp', label: 'AI Body Intelligence' },
   { src: '/images/Gym-creative-4.webp', label: 'Real-Time Power Metrics' },
   { src: '/images/gym-creative-5.webp', label: 'Motion-Tracked Form Coaching' },
-  { src: '/images/zym-creative-6.png', label: 'Built For Gym Owners' },
+  { src: '/images/zym-creative-6.jpg', label: 'Built For Gym Owners' },
 ]

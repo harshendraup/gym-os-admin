@@ -52,13 +52,24 @@ export default function Sidebar() {
   )
 
   return (
-    <aside className="glass-sidebar flex h-full w-64 flex-shrink-0 flex-col" style={{
-      background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.92) 100%)',
+    <aside className="glass-sidebar relative flex h-full w-64 flex-shrink-0 flex-col overflow-hidden" style={{
+      background: 'rgba(248,250,252,0.42)',
       backdropFilter: 'blur(24px)',
       WebkitBackdropFilter: 'blur(24px)',
       border: '1px solid rgba(59,130,246,0.2)',
       boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.8), 0 8px 32px rgba(0,0,0,0.08)',
     }}>
+      <video
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-45"
+        src="/images/jumping.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-hidden="true"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-white/25" aria-hidden="true" />
+      <div className="relative z-10 flex h-full flex-col">
       {/* Logo + Gym Name */}
       <div
         className="flex items-center gap-3 px-5 py-5"
@@ -170,6 +181,7 @@ export default function Sidebar() {
             </p>
           </div>
         </div>
+      </div>
       </div>
     </aside>
   )

@@ -45,6 +45,9 @@ export function MemberDietsDialog({
   const { data: plans = [] } = useDietPlans()
   const { data: assessments = [] } = useNutritionAssessmentsForMember(open ? Number(member.id) : undefined)
   const latestAssessment = assessments[0]
+  const memberPlans = plans.filter((plan) => Number(plan.memberId) === Number(member.id))
+  const activeMemberPlan = memberPlans.find((plan) => plan.status === 'Active')
+  const hasCompletedAssessment = latestAssessment?.status === 'Completed'
 
   const activeAssignment = assignments.find((a) => a.status === 'Active')
   const { data: progress } = useDietProgress(activeAssignment?.id)
@@ -94,9 +97,23 @@ export function MemberDietsDialog({
               </p>
             </div>
             <Button size="sm" variant="outline" onClick={() => setAssessmentOpen(true)}>
-              <ClipboardList className="mr-1.5 h-3.5 w-3.5" /> {latestAssessment ? 'Update' : 'Start'}
+              <ClipboardList className="mr-1.5 h-3.5 w-3.5" /> {hasCompletedAssessment ? 'Update' : 'Complete Assessment'}
             </Button>
           </div>
+
+          {!hasCompletedAssessment ? (
+            <Button size="sm" onClick={() => setAssessmentOpen(true)}>
+              <ClipboardList className="mr-1.5 h-4 w-4" /> Complete Nutrition Assessment
+            </Button>
+          ) : !activeMemberPlan ? (
+            <Button size="sm" onClick={() => { setPlanFormAssessment(latestAssessment); setPlanFormOpen(true) }}>
+              <Plus className="mr-1.5 h-4 w-4" /> Create Diet Plan
+            </Button>
+          ) : (
+            <Button size="sm" onClick={() => setAssignOpen(true)}>
+              <Plus className="mr-1.5 h-4 w-4" /> Assign Active Diet Plan
+            </Button>
+          )}
 
           {assignments.length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-8 text-center">
@@ -124,9 +141,6 @@ export function MemberDietsDialog({
             </div>
           )}
 
-          <Button size="sm" onClick={() => setAssignOpen(true)}>
-            <Plus className="mr-1.5 h-4 w-4" /> Assign New Plan
-          </Button>
         </DialogContent>
       </Dialog>
 
@@ -135,7 +149,7 @@ export function MemberDietsDialog({
         onClose={() => setAssignOpen(false)}
         memberOptions={[member]}
         trainerOptions={trainerOptions}
-        planOptions={plans}
+        planOptions={memberPlans.filter((plan) => plan.status === 'Active')}
         fixedMember={member}
       />
 
@@ -159,6 +173,7 @@ export function MemberDietsDialog({
         fixedBranchId={member.branchId ? Number(member.branchId) : undefined}
         assessment={planFormAssessment}
         member={member}
+        templateOptions={plans.filter((plan) => plan.memberId === null && plan.planType === 'Template')}
       />
     </>
   )

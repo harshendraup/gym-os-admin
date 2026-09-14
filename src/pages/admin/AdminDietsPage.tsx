@@ -66,6 +66,7 @@ export default function AdminDietsPage() {
   const { data: branches = [] } = useBranches(gymContext?.businessId)
 
   const plans = useDietPlans()
+  const templatePlans = plans.data?.filter((plan) => plan.memberId === null) ?? []
   const assignments = useDietAssignments()
   const foods = useFoods()
   const libraryConfig = useFoodLibraryConfig()
@@ -120,7 +121,7 @@ export default function AdminDietsPage() {
               <StepLabel step={1} label="Food Library" done={!!libraryConfig.data} />
             </TabsTrigger>
             <TabsTrigger value="plans">
-              <StepLabel step={2} label="Diet Plans" done={(plans.data?.length ?? 0) > 0} />
+              <StepLabel step={2} label="Diet Plan Templates" done={templatePlans.length > 0} />
             </TabsTrigger>
             <TabsTrigger value="assignments">
               <StepLabel step={3} label="Assigned Diets" done={(assignments.data?.length ?? 0) > 0} />
@@ -189,7 +190,7 @@ export default function AdminDietsPage() {
 
           <TabsContent value="plans">
             <DietPlanLibrarySection
-              data={plans.data}
+              data={templatePlans}
               isLoading={plans.isLoading}
               isError={plans.isError}
               onRetry={plans.refetch}
@@ -213,7 +214,7 @@ export default function AdminDietsPage() {
                 <Button
                   size="sm"
                   onClick={() => { setAssignFixedPlanId(undefined); setAssignOpen(true) }}
-                  disabled={(plans.data?.length ?? 0) === 0}
+                  disabled={templatePlans.length === 0}
                 >
                   <Plus className="mr-1.5 h-4 w-4" /> Assign to Member
                 </Button>
@@ -226,7 +227,7 @@ export default function AdminDietsPage() {
                 isError={assignments.isError}
                 onRetry={assignments.refetch}
                 emptyMessage={
-                  (plans.data?.length ?? 0) === 0
+                  templatePlans.length === 0
                     ? 'Create a diet plan in the Diet Plans tab, then assign it to a member.'
                     : 'No members are on a diet plan yet — assign your first one.'
                 }

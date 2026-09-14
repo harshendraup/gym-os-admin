@@ -17,9 +17,13 @@ const ACCENTS: Record<string, { stripe: string; text: string; ring: string }> = 
 }
 const DEFAULT_ACCENT = { stripe: 'from-primary to-violet-500', text: 'text-primary', ring: 'ring-primary/20' }
 
-function accentFor(colorTag: string | null) {
-  if (!colorTag) return DEFAULT_ACCENT
-  return ACCENTS[colorTag.trim().toLowerCase()] ?? DEFAULT_ACCENT
+function accentFor(colorTag: string | null, title: string, membershipName: string) {
+  const explicitTag = colorTag?.trim().toLowerCase()
+  if (explicitTag && ACCENTS[explicitTag]) return ACCENTS[explicitTag]
+
+  const planName = `${title} ${membershipName}`.toLowerCase()
+  const namedTheme = Object.keys(ACCENTS).find((theme) => planName.includes(theme))
+  return namedTheme ? ACCENTS[namedTheme] : DEFAULT_ACCENT
 }
 
 const STATUS_DOT: Record<MembershipStatus, string> = {
@@ -38,7 +42,7 @@ interface MembershipPlanCardProps {
 }
 
 export function MembershipPlanCard({ membership: m, branchLabel, onEdit, onDelete, deleting }: MembershipPlanCardProps) {
-  const accent = accentFor(m.colorTag)
+  const accent = accentFor(m.colorTag, m.title, m.membershipName)
   const discounted = m.finalAmount && m.finalAmount !== m.amount
   const period = m.isLifetime ? 'lifetime' : `${m.durationValue} ${m.durationUnit}`
 
