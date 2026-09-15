@@ -58,8 +58,8 @@ export function MembershipPlanCard({ membership: m, branchLabel, onEdit, onDelet
   return (
     <div
       className={cn(
-        'group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm',
-        'transition-all duration-200 hover:-translate-y-1 hover:shadow-xl',
+        'group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white/75 backdrop-blur-sm shadow-sm',
+        'transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:bg-white/80',
         m.isFeatured && `ring-2 ${accent.ring}`
       )}
     >

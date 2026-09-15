@@ -93,7 +93,31 @@ export default function LoginPage() {
   const copy = slideCopy[heroIdx] ?? slideCopy[0]
 
   return (
-    <div className="min-h-screen w-full lg:grid lg:grid-cols-[1.1fr_1fr]" style={{ background: '#080C16' }}>
+    <div className="relative min-h-screen w-full lg:grid lg:grid-cols-[1.1fr_1fr]" style={{ background: '#080C16' }}>
+      {/* Full page background - single unified layer spanning entire grid */}
+      <div className="absolute inset-0 lg:col-span-2" aria-hidden>
+        {heroImages.map((img, i) => (
+          <img
+            key={img.src}
+            src={img.src}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover transition-opacity duration-[1400ms] ease-out"
+            style={{
+              opacity: i === heroIdx ? 1 : 0,
+              animation: i === heroIdx ? 'kenburns 12s ease-out both' : undefined,
+            }}
+          />
+        ))}
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(120deg, rgba(8,12,22,0.86) 0%, rgba(24,14,28,0.62) 45%, rgba(8,12,22,0.55) 100%)' }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'radial-gradient(ellipse at 15% 90%, rgba(139,30,63,0.42) 0%, transparent 58%)' }}
+        />
+      </div>
+
       {/* ═══════════════════════════════════════════════════════════
           LEFT — cinematic showcase (desktop) / backdrop (mobile)
       ═══════════════════════════════════════════════════════════ */}
@@ -102,43 +126,13 @@ export default function LoginPage() {
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
-        <div className="absolute inset-0" aria-hidden>
-          {heroImages.map((img, i) => (
-            <img
-              key={img.src}
-              src={img.src}
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover transition-opacity duration-[1400ms] ease-out"
-              style={{
-                opacity: i === heroIdx ? 1 : 0,
-                animation: i === heroIdx ? 'kenburns 12s ease-out both' : undefined,
-              }}
-            />
-          ))}
-          <div
-            className="absolute inset-0"
-            style={{ background: 'linear-gradient(120deg, rgba(8,12,22,0.86) 0%, rgba(24,14,28,0.62) 45%, rgba(8,12,22,0.55) 100%)' }}
-          />
-          <div
-            className="absolute inset-0"
-            style={{ background: 'radial-gradient(ellipse at 15% 90%, rgba(139,30,63,0.42) 0%, transparent 58%)' }}
-          />
-          {/* Seam into the form column so the split never reads as two pages */}
-          <div
-            className="absolute inset-y-0 right-0 w-40"
-            style={{ background: 'linear-gradient(90deg, transparent 0%, #080C16 100%)' }}
-          />
-        </div>
-
         {/* Brand */}
         <Link to="/" className="relative z-10 inline-flex items-center gap-2.5 w-fit group">
-          <div
-            className="flex h-10 w-10 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110"
-            style={{ background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)', boxShadow: '0 10px 30px rgba(59,130,246,0.4)' }}
-          >
-            <Dumbbell className="h-5 w-5 text-white" />
-          </div>
-          <span className="text-lg font-bold text-white">GymOS</span>
+          <img
+            src="/logo/KrikalOne_logo.png"
+            alt="KrikalOne"
+            className="h-14 w-auto transition-transform duration-300 group-hover:scale-110"
+          />
         </Link>
 
         {/* Rotating copy */}
@@ -185,7 +179,7 @@ export default function LoginPage() {
 
         {/* Footer strip */}
         <div className="relative z-10 flex items-center gap-6 text-xs" style={{ color: '#8A93A3' }}>
-          <span>© {new Date().getFullYear()} GymOS</span>
+          <span>© {new Date().getFullYear()} KrikalOne</span>
           <Link to="/about" className="hover:text-white transition-colors">About</Link>
           <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
         </div>
@@ -194,10 +188,9 @@ export default function LoginPage() {
       {/* ═══════════════════════════════════════════════════════════
           RIGHT — the form
       ═══════════════════════════════════════════════════════════ */}
-      <div className="relative flex min-h-screen items-center justify-center px-5 py-10 sm:px-8">
-        {/* Mobile backdrop — the showcase collapses into an ambient image */}
+      <div className="relative flex items-center justify-center px-5 py-10 sm:px-8">
+        {/* Mobile backdrop overlay */}
         <div className="absolute inset-0 lg:hidden" aria-hidden>
-          <img src={heroImages[heroIdx].src} alt="" className="h-full w-full object-cover" />
           <div
             className="absolute inset-0"
             style={{ background: 'linear-gradient(160deg, rgba(8,12,22,0.82) 0%, rgba(24,14,28,0.9) 100%)' }}
@@ -219,19 +212,19 @@ export default function LoginPage() {
             style={{ color: '#A6B0C0' }}
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            Back to gymos.app
+            Back to KrikalOne.app
           </Link>
 
           <div
             className="rounded-3xl p-7 sm:p-9"
             style={{
               background:
-                'linear-gradient(148deg, rgba(191,115,53,0.10) 0%, rgba(191,115,53,0.03) 38%, transparent 68%), rgba(14,19,32,0.82)',
-              backdropFilter: 'blur(44px) saturate(190%)',
-              WebkitBackdropFilter: 'blur(44px) saturate(190%)',
-              border: '1px solid rgba(255,255,255,0.10)',
+                'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
+              backdropFilter: 'blur(20px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
               boxShadow:
-                'inset 0 1px 0 rgba(255,255,255,0.14), inset 1px 0 0 rgba(255,255,255,0.05), 0 40px 100px rgba(0,0,0,0.55)',
+                '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
             }}
           >
             {/* Header */}
@@ -244,7 +237,7 @@ export default function LoginPage() {
               </div>
               <h2 className="text-[26px] font-bold leading-tight text-white">Welcome back</h2>
               <p className="mt-1.5 text-sm" style={{ color: '#93A0B4' }}>
-                Sign in to your GymOS admin console.
+                Sign in to your KrikalOne admin console.
               </p>
             </div>
 
@@ -413,7 +406,7 @@ export default function LoginPage() {
             </Link>
             {' · '}
             <Link to="/about" className="font-medium transition-colors" style={{ color: '#BF7335' }}>
-              About GymOS
+              About KrikalOne
             </Link>
           </p>
         </div>

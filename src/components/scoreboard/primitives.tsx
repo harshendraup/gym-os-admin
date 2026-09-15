@@ -233,9 +233,9 @@ export function InfoPlate({ icon: Icon, label, value }: { icon: LucideIcon; labe
   )
 }
 
-export function ScoreCard({ title, subtitle, children, action }: { title: string; subtitle?: ReactNode; children: ReactNode; action?: ReactNode }) {
+export function ScoreCard({ title, subtitle, children, action, transparent = false }: { title: string; subtitle?: ReactNode; children: ReactNode; action?: ReactNode; transparent?: boolean }) {
   return (
-    <div style={{ background: T.card, border: `1px solid ${T.line}`, borderRadius: '18px', padding: '22px 22px 18px' }}>
+    <div style={{ background: transparent ? 'rgba(255, 255, 255, 0.75)' : T.card, border: transparent ? '1px solid rgba(226, 232, 240, 0.8)' : `1px solid ${T.line}`, borderRadius: '18px', padding: '22px 22px 18px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px', gap: 12, flexWrap: 'wrap' }}>
         <div>
           <div style={{ ...display, fontSize: '17px', color: T.text, textTransform: 'uppercase' }}>{title}</div>

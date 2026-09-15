@@ -91,7 +91,7 @@ export default function SubAdminLayout() {
               style={{ ...display, color: '#FCFAF4', fontSize: 16, textTransform: 'uppercase', lineHeight: 1 }}
               className="truncate"
             >
-              {branding?.name ?? 'GymOS'}
+              {branding?.name ?? 'KrikalOne'}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 5 }}>
               <span style={{ width: 6, height: 6, borderRadius: 999, background: T.forest, display: 'inline-block' }} />

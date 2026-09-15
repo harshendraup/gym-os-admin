@@ -22,41 +22,19 @@ const LOCKUP_SIZES = {
 } as const
 
 /**
- * The brand lockup, set as text.
- *
- * Text rather than the PNG on purpose: the artwork's wordmark is dark navy on
- * transparent, so on this near-black site it needed a white plate behind it to
- * be legible at all. As type it inherits the right colours directly, stays
- * sharp at any size, costs no request, and is one component to swap when the
- * real logo file is ready.
+ * The brand lockup, using the KrikalOne logo image.
  */
 export function BrandLogo({ size = 'md' }: { size?: keyof typeof LOCKUP_SIZES }) {
-  const s = LOCKUP_SIZES[size]
+  const heights = { sm: 36, md: 44, lg: 64 } as const
+  const height = heights[size]
 
   return (
-    <span className="inline-flex flex-col items-center leading-none">
-      <span
-        className="font-extrabold"
-        style={{ fontSize: s.word, letterSpacing: '-0.02em', lineHeight: 1 }}
-      >
-        <span style={{ color: '#FFFFFF' }}>Krikal</span>
-        <span style={{ color: BRAND_ORANGE }}>One</span>
-      </span>
-
-      {/* Short rules either side of the tagline, as on the artwork. Fixed
-          width rather than flex: stretched to fill, they vanish at the sizes
-          where the tagline is already wider than the wordmark. */}
-      <span className="flex items-center" style={{ marginTop: s.gap, gap: s.rule * 0.55 }}>
-        <span style={{ width: s.rule, height: 1, background: 'rgba(255,255,255,0.4)' }} />
-        <span
-          className="whitespace-nowrap font-semibold uppercase"
-          style={{ fontSize: s.tagline, letterSpacing: '0.2em', color: '#C9D3DF' }}
-        >
-          Gym SaaS Management Platform
-        </span>
-        <span style={{ width: s.rule, height: 1, background: 'rgba(255,255,255,0.4)' }} />
-      </span>
-    </span>
+    <img
+      src="/logo/KrikalOne_logo.png"
+      alt="KrikalOne"
+      className="h-auto"
+      style={{ height: `${height}px` }}
+    />
   )
 }
 

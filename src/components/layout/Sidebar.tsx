@@ -80,18 +80,14 @@ export default function Sidebar() {
           <img
             src={branding.logoUrl}
             alt={branding.name}
-            className="h-9 w-9 rounded-xl object-cover flex-shrink-0 shadow-md"
+            className="h-9 w-auto rounded-xl object-cover flex-shrink-0 shadow-md"
           />
         ) : (
-          <div
-            className="flex h-9 w-9 items-center justify-center rounded-xl flex-shrink-0 shadow-lg"
-            style={{
-              background:
-                'linear-gradient(135deg, hsl(var(--primary)) 0%, color-mix(in srgb, hsl(var(--primary)) 100%, black 18%) 100%)',
-            }}
-          >
-            <Dumbbell className="h-5 w-5 text-white" />
-          </div>
+          <img
+            src="/logo/k1_logo.png"
+            alt="KrikalOne"
+            className="h-9 w-auto flex-shrink-0"
+          />
         )}
         <div className="min-w-0">
           <p className="text-sm font-semibold text-slate-900 truncate max-w-[148px]">

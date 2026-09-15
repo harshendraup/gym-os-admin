@@ -34,9 +34,9 @@ function findUser(users: ManagedUser[], id: number | null) {
 }
 
 const SECTIONS = [
-  { key: 'foods', label: 'Food Library' },
-  { key: 'plans', label: 'Diet Plans' },
   { key: 'assignments', label: 'Assigned Diets' },
+  { key: 'plans', label: 'Diet Plans' },
+  { key: 'foods', label: 'Food Library' },
 ] as const
 
 export default function SubAdminDietsPage() {
@@ -57,7 +57,7 @@ export default function SubAdminDietsPage() {
   const deleteFood = useDeleteFood()
   const deleteLibrary = useDeleteFoodLibraryConfig()
 
-  const [section, setSection] = useState<(typeof SECTIONS)[number]['key']>('foods')
+  const [section, setSection] = useState<(typeof SECTIONS)[number]['key']>('assignments')
   const [planFormOpen, setPlanFormOpen] = useState(false)
   const [editingPlan, setEditingPlan] = useState<DietPlanRecord | null>(null)
   const [detailPlan, setDetailPlan] = useState<DietPlanRecord | null>(null)
@@ -148,52 +148,8 @@ export default function SubAdminDietsPage() {
         ))}
       </div>
 
-      {section === 'assignments' && (
-        <ScoreCard
-          title={`Assigned Diets · ${assignments.data?.length ?? 0}`}
-          subtitle="Which members are on a diet plan right now, and who's coaching them"
-          action={
-            <ScoreboardCta icon={Plus} onClick={() => { setAssignFixedPlanId(undefined); setAssignOpen(true) }}>
-              Assign to Member
-            </ScoreboardCta>
-          }
-        >
-          <DietPlanTable
-            data={assignments.data}
-            planLookup={planLookup}
-            isLoading={assignments.isLoading || plans.isLoading}
-            isError={assignments.isError}
-            onRetry={assignments.refetch}
-            emptyMessage={
-              (plans.data?.length ?? 0) === 0
-                ? 'Create a diet plan in the Diet Plans tab, then assign it to a member.'
-                : 'No members are on a diet plan yet — assign your first one.'
-            }
-            memberLabel={memberName}
-            trainerLabel={trainerName}
-            onEdit={setEditingAssignment}
-            onDelete={(a) => deleteAssignment.mutate(a.id)}
-            deletingId={deleteAssignment.isPending ? (deleteAssignment.variables ?? null) : null}
-          />
-        </ScoreCard>
-      )}
-
-      {section === 'plans' && (
-        <DietPlanLibrarySection
-          data={plans.data}
-          isLoading={plans.isLoading}
-          isError={plans.isError}
-          onRetry={plans.refetch}
-          onCreate={() => { setEditingPlan(null); setPlanFormOpen(true) }}
-          onOpenPlan={setDetailPlan}
-          onDuplicatePlan={(p) => duplicatePlan.mutate(p.id)}
-          onArchivePlan={(p) => updateAnyPlan.mutate({ id: p.id, data: { status: 'Archived', isActive: false } })}
-          defaultOpen
-        />
-      )}
-
       {section === 'foods' && !libraryConfig.isLoading && !libraryConfig.data && (
-        <ScoreCard title="Food Library" subtitle="Every food your branch has added">
+        <ScoreCard title="Food Library" subtitle="Every food your branch has added" transparent>
           <FoodLibrarySetupPrompt onConfigure={() => setConfigureLibraryOpen(true)} />
         </ScoreCard>
       )}
@@ -201,6 +157,7 @@ export default function SubAdminDietsPage() {
       {section === 'foods' && (libraryConfig.isLoading || libraryConfig.data) && (
         <ScoreCard
           title={`Food Library · ${foods.data?.length ?? 0}`}
+          transparent
           subtitle={
             <span style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               <span>Every food your branch has added — pick from these when building a diet plan</span>
@@ -264,6 +221,51 @@ export default function SubAdminDietsPage() {
               </RowCard>
             ))}
           </RowCardList>
+        </ScoreCard>
+      )}
+
+      {section === 'plans' && (
+        <DietPlanLibrarySection
+          data={plans.data}
+          isLoading={plans.isLoading}
+          isError={plans.isError}
+          onRetry={plans.refetch}
+          onCreate={() => { setEditingPlan(null); setPlanFormOpen(true) }}
+          onOpenPlan={setDetailPlan}
+          onDuplicatePlan={(p) => duplicatePlan.mutate(p.id)}
+          onArchivePlan={(p) => updateAnyPlan.mutate({ id: p.id, data: { status: 'Archived', isActive: false } })}
+          defaultOpen
+        />
+      )}
+
+      {section === 'assignments' && (
+        <ScoreCard
+          title={`Assigned Diets · ${assignments.data?.length ?? 0}`}
+          subtitle="Which members are on a diet plan right now, and who's coaching them"
+          action={
+            <ScoreboardCta icon={Plus} onClick={() => { setAssignFixedPlanId(undefined); setAssignOpen(true) }}>
+              Assign to Member
+            </ScoreboardCta>
+          }
+          transparent
+        >
+          <DietPlanTable
+            data={assignments.data}
+            planLookup={planLookup}
+            isLoading={assignments.isLoading || plans.isLoading}
+            isError={assignments.isError}
+            onRetry={assignments.refetch}
+            emptyMessage={
+              (plans.data?.length ?? 0) === 0
+                ? 'Create a diet plan in the Diet Plans tab, then assign it to a member.'
+                : 'No members are on a diet plan yet — assign your first one.'
+            }
+            memberLabel={memberName}
+            trainerLabel={trainerName}
+            onEdit={setEditingAssignment}
+            onDelete={(a) => deleteAssignment.mutate(a.id)}
+            deletingId={deleteAssignment.isPending ? (deleteAssignment.variables ?? null) : null}
+          />
         </ScoreCard>
       )}
 

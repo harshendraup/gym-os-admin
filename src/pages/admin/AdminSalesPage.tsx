@@ -97,10 +97,10 @@ export default function AdminSalesPage() {
   const submit = () => {
     if (!form.name.trim() || !form.phone.trim()) return
     const payload = {
-      name: form.name.trim(), phone: form.phone.trim(), email: form.email || undefined,
+      name: form.name.trim(), phone: form.phone.trim(), email: form.email.trim() || undefined,
       branchId: form.branchId ? Number(form.branchId) : undefined, assignedTo: form.assignedTo ? Number(form.assignedTo) : undefined,
-      source: form.source, status: form.status, interest: form.interest || undefined, goal: form.goal || undefined,
-      nextFollowUpAt: form.nextFollowUpAt || undefined, notes: form.notes || undefined,
+      source: form.source, status: form.status, interest: form.interest.trim() || undefined, goal: form.goal.trim() || undefined,
+      nextFollowUpAt: form.nextFollowUpAt.trim() ? new Date(form.nextFollowUpAt).toISOString() : undefined, notes: form.notes.trim() || undefined,
     }
     const options = { onSuccess: () => { setFormOpen(false); setEditing(null) } }
     if (editing) updateLead.mutate(payload, options)
@@ -122,7 +122,7 @@ export default function AdminSalesPage() {
   }
 
   return (
-    <div className="relative -m-6 flex h-[calc(100%+3rem)] flex-col overflow-hidden lg:-m-8 lg:h-[calc(100%+4rem)]">
+    <div className="relative flex h-full flex-col overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `linear-gradient(rgba(248,250,252,0.78), rgba(248,250,252,0.86)), url('${backgroundImage}')` }} aria-hidden="true" />
       <div className="relative z-10 flex-1 overflow-auto p-6">
         <div className="space-y-6">
@@ -154,10 +154,10 @@ export default function AdminSalesPage() {
           </div>
 
           {view === 'pipeline' && !isLoading && !isError && (
-            <div className="grid gap-3 overflow-x-auto pb-1 xl:grid-cols-6">
+            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
               {STATUSES.map((status) => {
                 const statusLeads = filteredLeads.filter((lead) => lead.status === status)
-                return <div key={status} className="min-w-[220px] rounded-xl border border-slate-200/80 bg-white/75 p-3">
+                return <div key={status} className="rounded-xl border border-slate-200/80 bg-white/75 p-3">
                   <div className="mb-3 flex items-center justify-between"><span className="text-xs font-semibold text-slate-700">{status}</span><span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">{statusLeads.length}</span></div>
                   <div className="space-y-2">{statusLeads.length === 0 ? <p className="py-5 text-center text-xs text-slate-400">No leads</p> : statusLeads.map((lead) => <LeadMiniCard key={lead.id} lead={lead} branchName={branchName} onEdit={openEdit} onAdvance={advanceLead} />)}</div>
                 </div>

@@ -39,7 +39,7 @@ export function DietPlanLibrarySection({
   const count = data?.length ?? 0
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/75 shadow-sm">
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
