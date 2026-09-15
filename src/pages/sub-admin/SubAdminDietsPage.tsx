@@ -46,7 +46,6 @@ export default function SubAdminDietsPage() {
   const { data: trainers = [] } = useUsersByRole(trainerRole?.id)
 
   const plans = useDietPlans()
-  const templatePlans = plans.data?.filter((plan) => plan.memberId === null) ?? []
   const assignments = useDietAssignments()
   const foods = useFoods()
   const libraryConfig = useFoodLibraryConfig()
@@ -86,7 +85,7 @@ export default function SubAdminDietsPage() {
 
   const stepDone: Record<(typeof SECTIONS)[number]['key'], boolean> = {
     foods: !!libraryConfig.data,
-          plans: templatePlans.length > 0,
+    plans: (plans.data?.length ?? 0) > 0,
     assignments: (assignments.data?.length ?? 0) > 0,
   }
 
@@ -166,7 +165,7 @@ export default function SubAdminDietsPage() {
             isError={assignments.isError}
             onRetry={assignments.refetch}
             emptyMessage={
-              templatePlans.length === 0
+              (plans.data?.length ?? 0) === 0
                 ? 'Create a diet plan in the Diet Plans tab, then assign it to a member.'
                 : 'No members are on a diet plan yet — assign your first one.'
             }
@@ -181,7 +180,7 @@ export default function SubAdminDietsPage() {
 
       {section === 'plans' && (
         <DietPlanLibrarySection
-          data={templatePlans}
+          data={plans.data}
           isLoading={plans.isLoading}
           isError={plans.isError}
           onRetry={plans.refetch}

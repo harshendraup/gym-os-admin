@@ -51,6 +51,7 @@ const AdminMembersPage = lazy(() => import('@/pages/admin/AdminMembersPage'))
 const AdminMemberDetailPage = lazy(() => import('@/pages/admin/AdminMemberDetailPage'))
 const AdminMembershipsPage = lazy(() => import('@/pages/admin/AdminMembershipsPage'))
 const AdminPaymentsPage = lazy(() => import('@/pages/admin/AdminPaymentsPage'))
+const AdminSalesPage = lazy(() => import('@/pages/admin/AdminSalesPage'))
 
 // Sub-Admin
 const SubAdminDashboardPage = lazy(() => import('@/pages/sub-admin/SubAdminDashboardPage'))
@@ -127,6 +128,7 @@ export const router = createBrowserRouter([
       { path: 'members/:id', element: wrap(AdminMemberDetailPage) },
       { path: 'memberships', element: wrap(AdminMembershipsPage) },
       { path: 'payments', element: wrap(AdminPaymentsPage) },
+      { path: 'sales', element: wrap(AdminSalesPage) },
     ],
   },
 

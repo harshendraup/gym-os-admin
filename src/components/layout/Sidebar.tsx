@@ -4,7 +4,7 @@ import { useAuthStore, selectRole } from '@/store/auth.store'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard, Users, Dumbbell, UserCog, Zap, Building2, Salad, Activity, CreditCard,
-  Smartphone, Wallet,
+  Smartphone, Wallet, Handshake,
 } from 'lucide-react'
 
 const navItems = [
@@ -28,6 +28,7 @@ const navItems = [
   { to: '/admin/memberships', label: 'Memberships', icon: CreditCard, roles: ['admin'] },
   { to: '/admin/members', label: 'Members', icon: Users, roles: ['admin'] },
   { to: '/admin/payments', label: 'Payments', icon: Wallet, roles: ['admin'] },
+  { to: '/admin/sales', label: 'Sales', icon: Handshake, roles: ['admin'] },
 
   // Sub-Admin
   { to: '/sub-admin/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['sub_admin'] },
