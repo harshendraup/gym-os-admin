@@ -123,7 +123,7 @@ export function MemberProfileTabs({
       )}
 
     <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
-    <div className="order-2 space-y-4 xl:order-1 xl:col-span-2">
+    <div className="order-2 space-y-4 xl:order-2 xl:col-span-2">
 
       <Card className="overflow-hidden border-white/60 bg-white/75 shadow-lg backdrop-blur-md">
         <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 to-blue-700" />
@@ -450,7 +450,7 @@ export function MemberProfileTabs({
       </Tabs>
     </div>
 
-    <div className="order-1 xl:order-2 xl:col-span-3">
+    <div className="order-1 xl:order-1 xl:col-span-3">
       <div className="xl:sticky xl:top-4">
         <AIInsightsPanel
           user={member}
