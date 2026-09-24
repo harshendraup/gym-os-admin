@@ -44,7 +44,7 @@ export default function AdminMetaIntegrationsPage() {
     <div className="relative -m-6 flex h-[calc(100%+3rem)] flex-col overflow-hidden lg:-m-8 lg:h-[calc(100%+4rem)]">
       <div
         className="pointer-events-none absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "linear-gradient(rgba(248,250,252,0.78), rgba(248,250,252,0.86)), url('/images/meta-social-media.jpg')" }}
+        style={{ backgroundImage: "linear-gradient(rgba(248,250,252,0.72), rgba(248,250,252,0.82)), url('/images/meta-social-media.png')" }}
         aria-hidden="true"
       />
       <div className="relative z-10 flex-1 space-y-6 overflow-auto p-6">

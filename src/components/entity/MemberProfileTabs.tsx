@@ -12,12 +12,13 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { getInitials, formatDate } from '@/lib/utils'
 import { AssignTrainerDialog } from './AssignTrainerDialog'
+import { AssignMembershipDialog } from './AssignMembershipDialog'
 import { MemberDietsDialog } from './MemberDietsDialog'
 import { EditMemberPersonalInfoDialog } from './EditMemberPersonalInfoDialog'
 import { EditFitnessPreferencesDialog } from './EditFitnessPreferencesDialog'
 import { RecordMeasurementDialog } from './RecordMeasurementDialog'
 import { LogCheckInDialog } from './LogCheckInDialog'
-import { MemberAIInsightsCard } from './MemberAIInsightsCard'
+import { AIInsightsPanel } from './AIInsightsPanel'
 import { useBodyMeasurementsForMember } from '@/hooks/useBodyMeasurements'
 import { useAttendanceLogsForMember, useAttendanceStats } from '@/hooks/useAttendanceLogs'
 import { useMemberFitnessPreferences } from '@/hooks/useMemberFitnessPreferences'
@@ -26,6 +27,28 @@ import { useMemberships } from '@/hooks/useMemberships'
 import { useUpdateUser } from '@/hooks/useUsers'
 import type { ManagedUser } from '@/api/user-management.api'
 import type { DietAssignmentRecord } from '@/api/diet-assignments.api'
+import type { MembershipRecord } from '@/api/memberships.api'
+
+function computeExpiry(joiningDate: string | null | undefined, plan: MembershipRecord | undefined): string | null {
+  if (!joiningDate || !plan || plan.isLifetime) return null
+  const start = new Date(joiningDate)
+  const expiry = new Date(start)
+  switch (plan.durationUnit) {
+    case 'days':
+      expiry.setDate(expiry.getDate() + plan.durationValue)
+      break
+    case 'weeks':
+      expiry.setDate(expiry.getDate() + plan.durationValue * 7)
+      break
+    case 'months':
+      expiry.setMonth(expiry.getMonth() + plan.durationValue)
+      break
+    case 'years':
+      expiry.setFullYear(expiry.getFullYear() + plan.durationValue)
+      break
+  }
+  return expiry.toISOString()
+}
 
 interface MemberProfileTabsProps {
   member: ManagedUser
@@ -56,6 +79,7 @@ export function MemberProfileTabs({
   const isActive = member.status === 'Active'
 
   const [assignTrainerOpen, setAssignTrainerOpen] = useState(false)
+  const [assignMembershipOpen, setAssignMembershipOpen] = useState(false)
   const [dietsOpen, setDietsOpen] = useState(false)
   const [editPersonalOpen, setEditPersonalOpen] = useState(false)
   const [editFitnessOpen, setEditFitnessOpen] = useState(false)
@@ -74,8 +98,12 @@ export function MemberProfileTabs({
   const latestAssessment = assessments.data?.[0]
   const latestMeasurement = measurements.data?.[0]
   const previousMeasurement = measurements.data?.[1]
-  const membershipPlan = memberships.find((m) => m.id === member.membershipId)
+  // Ids come back from the API as strings even where the type says number, so compare as strings.
+  const membershipPlan = memberships.find((m) => String(m.id) === String(member.membershipId))
+  const membershipOptions = memberships.filter((m) => m.status === 'active' && (!m.branchId || String(m.branchId) === String(member.branchId)))
   const trainerNotes = (member.metaUser?.trainerNotes as string | undefined) ?? ''
+  const effectiveJoiningDate = member.joiningDate ?? member.createdAt ?? null
+  const membershipExpiry = computeExpiry(effectiveJoiningDate, membershipPlan)
 
   const saveTrainerNotes = () => {
     if (trainerNotesDraft === null) return
@@ -86,14 +114,16 @@ export function MemberProfileTabs({
   }
 
   return (
-    <div className="animate-fade-in grid grid-cols-1 gap-4 xl:grid-cols-3">
-    <div className="space-y-4 xl:col-span-2">
+    <div className="animate-fade-in space-y-4">
       {onBack && (
         <Button variant="ghost" size="sm" onClick={onBack} className="-ml-2">
           <ArrowLeft className="mr-1.5 h-4 w-4" />
           Back
         </Button>
       )}
+
+    <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
+    <div className="order-2 space-y-4 xl:order-1 xl:col-span-2">
 
       <Card className="overflow-hidden border-white/60 bg-white/75 shadow-lg backdrop-blur-md">
         <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 to-blue-700" />
@@ -131,30 +161,31 @@ export function MemberProfileTabs({
             )}
           </div>
 
-          {(latestMeasurement?.bmi || attendanceStats.data) && (
-            <div className="mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4 sm:grid-cols-4">
-              <QuickStat label="BMI" value={latestMeasurement?.bmi ?? '—'} />
-              <QuickStat label="Weight" value={latestMeasurement?.weight ? `${latestMeasurement.weight} kg` : '—'} />
-              <QuickStat
-                label="Last Check-in"
-                value={attendanceStats.data?.lastCheckInAt ? formatDate(attendanceStats.data.lastCheckInAt) : 'Never'}
-              />
-              <QuickStat label="Trainer" value={currentTrainerName ?? 'Unassigned'} />
-            </div>
-          )}
+          <div className="mt-5 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4 sm:grid-cols-5">
+            <QuickStat label="Membership" value={membershipPlan?.membershipName ?? '—'} />
+            <QuickStat label="Expires" value={membershipPlan?.isLifetime ? 'Lifetime' : membershipExpiry ? formatDate(membershipExpiry) : '—'} />
+            <QuickStat
+              label="Last Check-in"
+              value={attendanceStats.data?.lastCheckInAt ? formatDate(attendanceStats.data.lastCheckInAt) : 'Never'}
+            />
+            <QuickStat label="Trainer" value={currentTrainerName ?? 'Unassigned'} />
+            <QuickStat label="Goal" value={fitnessPrefs.data?.primaryGoal ?? '—'} />
+          </div>
         </CardContent>
       </Card>
 
       <Tabs defaultValue="overview">
-        <TabsList className="h-auto w-full flex-wrap justify-start gap-1">
-          <BuilderTab value="overview" icon={Info} label="Overview" />
-          <BuilderTab value="personal" icon={UserIcon} label="Personal & Contact" />
-          <BuilderTab value="fitness" icon={Dumbbell} label="Fitness Profile" />
-          <BuilderTab value="nutrition" icon={Apple} label="Nutrition" />
-          <BuilderTab value="membership" icon={CreditCard} label="Membership & Trainer" />
-          <BuilderTab value="progress" icon={TrendingUp} label="Progress" />
-          <BuilderTab value="attendance" icon={CalendarCheck} label="Attendance" />
-</TabsList>
+        <div className="-mx-1 overflow-x-auto px-1 pb-1">
+          <TabsList className="h-auto w-max min-w-full justify-start gap-1 bg-slate-100/70 p-1">
+            <BuilderTab value="overview" icon={Info} label="Overview" />
+            <BuilderTab value="personal" icon={UserIcon} label="Personal" />
+            <BuilderTab value="fitness" icon={Dumbbell} label="Fitness" />
+            <BuilderTab value="nutrition" icon={Apple} label="Nutrition" />
+            <BuilderTab value="membership" icon={CreditCard} label="Membership" />
+            <BuilderTab value="progress" icon={TrendingUp} label="Progress" />
+            <BuilderTab value="attendance" icon={CalendarCheck} label="Attendance" />
+          </TabsList>
+        </div>
 
         <TabsContent value="overview" className="mt-4 space-y-4">
           <Card className="border-white/60 bg-white/65 shadow-lg backdrop-blur-md">
@@ -276,11 +307,16 @@ export function MemberProfileTabs({
         <TabsContent value="membership" className="mt-4 space-y-4">
           <Card className="border-white/60 bg-white/65 shadow-lg backdrop-blur-md">
             <CardContent className="p-6">
-              <h3 className="mb-4 text-sm font-semibold text-slate-900">Membership</h3>
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-slate-900">Membership</h3>
+                <Button size="sm" variant="outline" onClick={() => setAssignMembershipOpen(true)}>
+                  <CreditCard className="mr-1.5 h-3.5 w-3.5" /> {membershipPlan ? 'Change' : 'Assign'}
+                </Button>
+              </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <DetailRow icon={CreditCard} label="Plan" value={membershipPlan?.membershipName ?? '—'} />
                 <DetailRow icon={Info} label="Status" value={member.status} />
-                <DetailRow icon={Calendar} label="Joining Date" value={member.joiningDate ? formatDate(member.joiningDate) : '—'} />
+                <DetailRow icon={Calendar} label="Joining Date" value={effectiveJoiningDate ? formatDate(effectiveJoiningDate) : '—'} />
                 {branchLabel && <DetailRow icon={MapPin} label="Branch" value={branchLabel} />}
               </div>
             </CardContent>
@@ -392,7 +428,12 @@ export function MemberProfileTabs({
                 </div>
               )}
               {!attendanceLogs.data || attendanceLogs.data.length === 0 ? (
-                <p className="text-sm text-slate-400">No check-ins logged yet.</p>
+                <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center">
+                  <p className="text-sm font-medium text-slate-600">No check-ins yet</p>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Once {displayName} checks in, attendance trends and progress will appear here.
+                  </p>
+                </div>
               ) : (
                 <div className="space-y-1">
                   {attendanceLogs.data.slice(0, 10).map((log) => (
@@ -409,27 +450,29 @@ export function MemberProfileTabs({
       </Tabs>
     </div>
 
-    <div className="xl:col-span-1">
+    <div className="order-1 xl:order-2 xl:col-span-3">
       <div className="xl:sticky xl:top-4">
-        <MemberAIInsightsCard
+        <AIInsightsPanel
           user={member}
-          dietCount={dietAssignments.length}
-          hasTrainer={!!currentTrainerName}
-          lastCheckInAt={attendanceStats.data?.lastCheckInAt}
-          checkInStreak={attendanceStats.data?.streak}
-          monthlyVisits={attendanceStats.data?.monthlyVisits}
-          bmi={latestMeasurement?.bmi}
-          weightTrendKg={
-            latestMeasurement?.weight && previousMeasurement?.weight
-              ? Math.round((Number(latestMeasurement.weight) - Number(previousMeasurement.weight)) * 10) / 10
-              : null
-          }
-          injuries={fitnessPrefs.data?.injuries}
-          physicalLimitations={fitnessPrefs.data?.physicalLimitations}
-          nutritionGoal={latestAssessment?.goal}
-          membershipStatus={member.status}
+          ctx={{
+            dietCount: dietAssignments.length,
+            hasTrainer: !!currentTrainerName,
+            lastCheckInAt: attendanceStats.data?.lastCheckInAt,
+            checkInStreak: attendanceStats.data?.streak,
+            monthlyVisits: attendanceStats.data?.monthlyVisits,
+            bmi: latestMeasurement?.bmi,
+            weightTrendKg:
+              latestMeasurement?.weight && previousMeasurement?.weight
+                ? Math.round((Number(latestMeasurement.weight) - Number(previousMeasurement.weight)) * 10) / 10
+                : null,
+            injuries: fitnessPrefs.data?.injuries,
+            physicalLimitations: fitnessPrefs.data?.physicalLimitations,
+            nutritionGoal: latestAssessment?.goal,
+            membershipStatus: member.status,
+          }}
         />
       </div>
+    </div>
     </div>
 
       <EditMemberPersonalInfoDialog open={editPersonalOpen} onClose={() => setEditPersonalOpen(false)} member={member} />
@@ -453,6 +496,12 @@ export function MemberProfileTabs({
         member={member}
         trainerOptions={trainerOptions}
       />
+      <AssignMembershipDialog
+        open={assignMembershipOpen}
+        onClose={() => setAssignMembershipOpen(false)}
+        member={member}
+        membershipOptions={membershipOptions}
+      />
       <MemberDietsDialog
         open={dietsOpen}
         onClose={() => setDietsOpen(false)}
@@ -467,7 +516,7 @@ export function MemberProfileTabs({
 
 function BuilderTab({ value, icon: Icon, label }: { value: string; icon: any; label: string }) {
   return (
-    <TabsTrigger value={value} className="gap-1.5 text-xs sm:text-sm">
+    <TabsTrigger value={value} className="shrink-0 gap-1.5 whitespace-nowrap text-xs">
       <Icon className="h-3.5 w-3.5" /> {label}
     </TabsTrigger>
   )
