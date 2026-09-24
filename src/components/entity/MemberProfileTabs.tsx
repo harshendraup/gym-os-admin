@@ -95,7 +95,7 @@ export function MemberProfileTabs({
         </Button>
       )}
 
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden border-white/60 bg-white/75 shadow-lg backdrop-blur-md">
         <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 to-blue-700" />
         <CardContent className="p-6">
           <div className="flex items-start justify-between gap-4">
@@ -154,10 +154,10 @@ export function MemberProfileTabs({
           <BuilderTab value="membership" icon={CreditCard} label="Membership & Trainer" />
           <BuilderTab value="progress" icon={TrendingUp} label="Progress" />
           <BuilderTab value="attendance" icon={CalendarCheck} label="Attendance" />
-        </TabsList>
+</TabsList>
 
         <TabsContent value="overview" className="mt-4 space-y-4">
-          <Card>
+          <Card className="border-white/60 bg-white/65 shadow-lg backdrop-blur-md">
             <CardContent className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2">
               <DetailRow icon={Mail} label="Email" value={member.email ?? '—'} />
               <DetailRow icon={Phone} label="Mobile" value={member.mobile ?? '—'} />
@@ -178,7 +178,7 @@ export function MemberProfileTabs({
         </TabsContent>
 
         <TabsContent value="personal" className="mt-4">
-          <Card>
+          <Card className="border-white/60 bg-white/65 shadow-lg backdrop-blur-md">
             <CardContent className="p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-900">Personal & Contact</h3>
@@ -205,7 +205,7 @@ export function MemberProfileTabs({
         </TabsContent>
 
         <TabsContent value="fitness" className="mt-4">
-          <Card>
+          <Card className="border-white/60 bg-white/65 shadow-lg backdrop-blur-md">
             <CardContent className="p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-900">Fitness Profile</h3>
@@ -249,7 +249,7 @@ export function MemberProfileTabs({
         </TabsContent>
 
         <TabsContent value="nutrition" className="mt-4 space-y-4">
-          <Card>
+          <Card className="border-white/60 bg-white/65 shadow-lg backdrop-blur-md">
             <CardContent className="p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-900">Latest Nutrition Assessment</h3>
@@ -274,7 +274,7 @@ export function MemberProfileTabs({
         </TabsContent>
 
         <TabsContent value="membership" className="mt-4 space-y-4">
-          <Card>
+          <Card className="border-white/60 bg-white/65 shadow-lg backdrop-blur-md">
             <CardContent className="p-6">
               <h3 className="mb-4 text-sm font-semibold text-slate-900">Membership</h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -286,7 +286,7 @@ export function MemberProfileTabs({
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-white/60 bg-white/65 shadow-lg backdrop-blur-md">
             <CardContent className="p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-900">Assigned Trainer</h3>
@@ -298,7 +298,7 @@ export function MemberProfileTabs({
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-white/60 bg-white/65 shadow-lg backdrop-blur-md">
             <CardContent className="p-6">
               <div className="mb-2 flex items-center gap-2">
                 <StickyNote className="h-4 w-4 text-slate-400" />
@@ -324,7 +324,7 @@ export function MemberProfileTabs({
         </TabsContent>
 
         <TabsContent value="progress" className="mt-4">
-          <Card>
+          <Card className="border-white/60 bg-white/65 shadow-lg backdrop-blur-md">
             <CardContent className="p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-900">Measurement History</h3>
@@ -375,7 +375,7 @@ export function MemberProfileTabs({
         </TabsContent>
 
         <TabsContent value="attendance" className="mt-4 space-y-4">
-          <Card>
+          <Card className="border-white/60 bg-white/65 shadow-lg backdrop-blur-md">
             <CardContent className="p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-900">Attendance</h3>
@@ -475,7 +475,7 @@ function BuilderTab({ value, icon: Icon, label }: { value: string; icon: any; la
 
 function QuickStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-slate-50 px-3 py-2">
+    <div className="rounded-lg border border-white/50 bg-white/35 px-3 py-2 backdrop-blur-sm">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
       <p className="text-sm font-semibold text-slate-900">{value}</p>
     </div>

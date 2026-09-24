@@ -73,28 +73,6 @@ export default function AdminDashboardPage() {
       />
       <div className="pointer-events-none absolute inset-0 bg-slate-50/75" aria-hidden="true" />
       <div className="relative z-10 flex-1 overflow-auto p-6 space-y-6">
-        <Card>
-          <CardContent className="flex items-center gap-3 p-5">
-            {business?.businessLogo ? (
-              <img
-                src={business.businessLogo}
-                alt={business.businessName}
-                className="h-10 w-10 rounded-xl object-cover flex-shrink-0"
-              />
-            ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                <Building2 className="h-5 w-5 text-primary" />
-              </div>
-            )}
-            <div>
-              <p className="text-xs" style={{ color: '#64748B' }}>Business</p>
-              <p className="text-lg font-bold text-slate-900">
-                {business?.businessName ?? (gymContext?.businessId ? '—' : 'No business assigned')}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((s) => (
             <Card key={s.label}>

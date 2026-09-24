@@ -50,19 +50,28 @@ export default function AdminMemberDetailPage() {
   const branchName = branches.find((b) => b.id === user.branchId)?.branchName
 
   return (
-    <MemberProfileTabs
-      member={user}
-      roleLabel="Member"
-      branchLabel={branchName}
-      onBack={() => navigate('/admin/members')}
-      onToggleStatus={() =>
-        updateUser.mutate({ status: user.status === 'Active' ? 'Inactive' : 'Active' })
-      }
-      isTogglingStatus={updateUser.isPending}
-      trainerOptions={branchTrainers}
-      currentTrainerName={currentTrainer?.fullName ?? currentTrainer?.firstName}
-      dietAssignments={diets}
-      dietTrainerName={trainerName}
-    />
+    <div className="relative -m-6 flex h-[calc(100%+3rem)] flex-col overflow-hidden lg:-m-8 lg:h-[calc(100%+4rem)]">
+      <div
+        className="pointer-events-none absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: "linear-gradient(rgba(248,250,252,0.65), rgba(248,250,252,0.74)), url('/images/ai-assistance.png')" }}
+        aria-hidden="true"
+      />
+      <div className="relative z-10 flex-1 overflow-auto p-6 lg:p-8">
+        <MemberProfileTabs
+          member={user}
+          roleLabel="Member"
+          branchLabel={branchName}
+          onBack={() => navigate('/admin/members')}
+          onToggleStatus={() =>
+            updateUser.mutate({ status: user.status === 'Active' ? 'Inactive' : 'Active' })
+          }
+          isTogglingStatus={updateUser.isPending}
+          trainerOptions={branchTrainers}
+          currentTrainerName={currentTrainer?.fullName ?? currentTrainer?.firstName}
+          dietAssignments={diets}
+          dietTrainerName={trainerName}
+        />
+      </div>
+    </div>
   )
 }

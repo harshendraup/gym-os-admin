@@ -285,7 +285,7 @@ export function MemberAIInsightsCard({
   }
 
   return (
-    <Card>
+    <Card className="border-white/60 bg-white/75 shadow-lg backdrop-blur-md">
       <CardContent className="p-6">
         <div className="mb-4 flex items-start justify-between gap-2">
           <div className="flex items-center gap-2">

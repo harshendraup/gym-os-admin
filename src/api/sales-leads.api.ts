@@ -1,7 +1,7 @@
 import { del, get, post, put } from './client'
 
 export type SalesLeadStatus = 'New' | 'Contacted' | 'Qualified' | 'Visit Booked' | 'Won' | 'Lost'
-export type SalesLeadSource = 'Instagram' | 'WhatsApp' | 'Website' | 'Referral' | 'Walk-in' | 'Other'
+export type SalesLeadSource = 'Facebook' | 'Instagram' | 'WhatsApp' | 'Website' | 'Referral' | 'Walk-in' | 'Other'
 
 export interface SalesLeadRecord {
   id: number
