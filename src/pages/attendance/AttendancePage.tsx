@@ -5,13 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Header } from '@/components/layout/Header'
-import { useTodayAttendance, useBranchQr } from '@/hooks/useAttendance'
+import { useTodayAttendance, useBranchQr, useRegenerateBranchQr } from '@/hooks/useAttendance'
 import { useAuthStore } from '@/store/auth.store'
 import { getInitials } from '@/lib/utils'
 
 function QrPanel({ gymId }: { gymId: string }) {
   const defaultBranchId = useAuthStore((s) => s.gymContext?.branchId ?? '')
   const { data: qr, isLoading } = useBranchQr(defaultBranchId)
+  const regenerateQr = useRegenerateBranchQr()
 
   if (!defaultBranchId) return null
 
@@ -29,6 +30,11 @@ function QrPanel({ gymId }: { gymId: string }) {
         ) : qr ? (
           <img src={(qr as any).qrImageUrl} alt="QR Code" className="h-48 w-48 rounded-lg border" />
         ) : null}
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => regenerateQr.mutate()} disabled={regenerateQr.isPending}>
+            {regenerateQr.isPending ? 'Refreshing...' : 'Refresh QR'}
+          </Button>
+        </div>
         <p className="text-xs text-muted-foreground text-center">Members scan this QR code to check in</p>
       </CardContent>
     </Card>

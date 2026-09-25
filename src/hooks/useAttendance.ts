@@ -52,3 +52,32 @@ export function useManualCheckIn() {
     onError: () => toast({ title: 'Check-in failed', variant: 'destructive' }),
   })
 }
+
+export function useGenerateBranchQr(branchId?: string) {
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: () => attendanceApi.generateBranchQr(branchId ?? ''),
+    onSuccess: () => {
+      if (branchId) {
+        qc.invalidateQueries({ queryKey: ['attendance', 'qr', branchId] })
+      }
+      toast({ title: 'QR code generated' })
+    },
+    onError: () => toast({ title: 'QR generation failed', variant: 'destructive' }),
+  })
+}
+
+export function useRegenerateBranchQr(branchId?: string) {
+  const qc = useQueryClient()
+  const resolvedBranchId = branchId ?? useAuthStore((s) => s.gymContext?.branchId ?? '')
+
+  return useMutation({
+    mutationFn: () => attendanceApi.regenerateBranchQr(resolvedBranchId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['attendance', 'qr', resolvedBranchId] })
+      toast({ title: 'QR code refreshed' })
+    },
+    onError: () => toast({ title: 'QR refresh failed', variant: 'destructive' }),
+  })
+}

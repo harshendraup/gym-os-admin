@@ -16,6 +16,16 @@ export interface AttendanceHeatmapPoint {
   count: number
 }
 
+export interface BranchQrRecord {
+  id: number
+  token: string
+  status: string
+  qrImageUrl: string
+  url: string
+  createdAt: string
+  updatedAt: string
+}
+
 export const attendanceApi = {
   today: (gymId: string, branchId?: string) =>
     api.get<AttendanceRecord[]>(`/gyms/${gymId}/attendance/today${branchId ? `?branchId=${branchId}` : ''}`),
@@ -30,5 +40,11 @@ export const attendanceApi = {
     api.post<AttendanceRecord>(`/gyms/${gymId}/attendance/manual`, data),
 
   getBranchQr: (gymId: string, branchId: string) =>
-    api.get<{ token: string; qrImageUrl: string }>(`/gyms/${gymId}/attendance/qr?branchId=${branchId}`),
+    api.get<BranchQrRecord>(`/branches/${branchId}/qr`),
+
+  generateBranchQr: (branchId: string) => api.post<BranchQrRecord>(`/branches/${branchId}/qr`, {}),
+
+  regenerateBranchQr: (branchId: string) => api.post<BranchQrRecord>(`/branches/${branchId}/qr/regenerate`, {}),
+
+  checkInWithQr: (qrToken: string) => api.post<{ success: boolean; alreadyCheckedIn?: boolean; message: string }>(`/attendance/check-in`, { qrToken }),
 }

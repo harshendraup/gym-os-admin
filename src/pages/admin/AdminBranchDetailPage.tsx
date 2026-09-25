@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import {
   ArrowLeft, Building2, Mail, Phone, MapPinned, Calendar, Pencil, Trash2, MapPin,
+  QrCode, RefreshCcw, Printer, Download, AlertCircle,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -16,6 +17,7 @@ import {
 } from '@/components/ui/dialog'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { useBranches, useUpdateBranch, useDeleteBranch } from '@/hooks/useBranches'
+import { useGenerateBranchQr, useBranchQr, useRegenerateBranchQr } from '@/hooks/useAttendance'
 import { useAuthStore } from '@/store/auth.store'
 import type { BranchRecord } from '@/api/branches.api'
 
@@ -181,6 +183,175 @@ function DetailRow({ icon: Icon, label, value }: { icon: any; label: string; val
   )
 }
 
+function BranchQrCard({ branch }: { branch: BranchRecord }) {
+  const branchId = String(branch.id)
+  const { data: qr, isLoading, isError, refetch } = useBranchQr(branchId)
+  const generateQr = useGenerateBranchQr(branchId)
+  const regenerateQr = useRegenerateBranchQr(branchId)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+
+  const qrImageUrl = useMemo(() => qr?.qrImageUrl || '', [qr?.qrImageUrl])
+
+  const handlePrint = () => {
+    if (!qrImageUrl) return
+
+    const printWindow = window.open('', '_blank', 'width=900,height=700')
+    if (!printWindow) return
+
+    printWindow.document.write(`<!doctype html>
+      <html>
+        <head>
+          <title>${branch.branchName} Attendance QR</title>
+          <style>
+            * { box-sizing: border-box; }
+            body {
+              margin: 0; font-family: Arial, sans-serif; background: #fff; color: #111827;
+              display: flex; align-items: center; justify-content: center; min-height: 100vh;
+            }
+            .card {
+              width: min(540px, 90vw); border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px; text-align: center;
+            }
+            .logo { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+            .subtitle { font-size: 14px; letter-spacing: 0.12em; text-transform: uppercase; color: #64748b; margin-bottom: 18px; }
+            .qr-wrap { display: flex; justify-content: center; align-items: center; margin: 22px 0; }
+            .qr-wrap img { width: 240px; height: 240px; object-fit: contain; border: 10px solid #fff; box-shadow: 0 10px 22px rgba(15,23,42,0.08); }
+            .title { font-size: 30px; font-weight: 700; margin: 0 0 8px; }
+            .hint { font-size: 16px; color: #475569; margin: 0; }
+            @media print {
+              body { background: #fff; }
+              .card { border: 0; box-shadow: none; width: 100%; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <div class="logo">${branch.branchName}</div>
+            <div class="subtitle">Attendance</div>
+            <div class="title">${branch.branchName}</div>
+            <p class="hint">Scan to mark attendance in the GymOS app</p>
+            <div class="qr-wrap"><img src="${qrImageUrl}" alt="Attendance QR" /></div>
+            <p class="hint">Open the GymOS app and scan this QR to check in.</p>
+          </div>
+        </body>
+      </html>
+    `)
+    printWindow.document.close()
+    printWindow.focus()
+    setTimeout(() => printWindow.print(), 300)
+  }
+
+  const handleDownload = () => {
+    if (!qrImageUrl) return
+    const link = document.createElement('a')
+    link.href = qrImageUrl
+    link.download = `branch-${branch.id}-attendance-qr.png`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const statusLabel = qr?.status ?? 'Inactive'
+  const hasQr = !!qr && !!qrImageUrl
+
+  return (
+    <Card className="overflow-hidden border-white/60 bg-white/75 shadow-lg backdrop-blur-md">
+      <CardContent className="p-6">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
+              <QrCode className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-slate-900">Attendance QR Code</h3>
+              <p className="text-xs text-slate-500">{branch.branchName}</p>
+            </div>
+          </div>
+          {hasQr && (
+            <Badge variant={statusLabel === 'active' ? 'success' : 'secondary'}>
+              {statusLabel === 'active' ? 'Active' : 'Inactive'}
+            </Badge>
+          )}
+        </div>
+
+        {isLoading ? (
+          <div className="flex min-h-56 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50">
+            <div className="text-center text-sm text-slate-500">Loading QR...</div>
+          </div>
+        ) : isError ? (
+          <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-red-200 bg-red-50 text-center text-red-700">
+            <AlertCircle className="h-5 w-5" />
+            <p className="text-sm font-medium">Unable to load QR code.</p>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>Retry</Button>
+          </div>
+        ) : hasQr ? (
+          <div className="space-y-4">
+            <div className="flex justify-center rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <img src={qrImageUrl} alt="Branch attendance QR" className="h-48 w-48 rounded-xl border border-slate-200 bg-white p-2 shadow-sm" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-medium text-slate-800">{branch.branchName}</p>
+              <p className="mt-1 text-xs text-slate-500">Members can scan this QR from the GymOS mobile app to mark attendance.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-center">
+            <QrCode className="h-8 w-8 text-slate-400" />
+            <div>
+              <p className="text-sm font-medium text-slate-700">No QR code has been generated for this branch.</p>
+              <p className="mt-1 text-xs text-slate-500">Generate a new attendance QR to start check-ins.</p>
+            </div>
+          </div>
+        )}
+
+        <div className="mt-5 flex flex-wrap gap-2">
+          {!hasQr ? (
+            <Button size="sm" onClick={() => generateQr.mutate()} disabled={generateQr.isPending}>
+              {generateQr.isPending ? 'Generating...' : 'Generate QR Code'}
+            </Button>
+          ) : (
+            <>
+              <Button size="sm" variant="outline" onClick={() => setConfirmOpen(true)} disabled={regenerateQr.isPending}>
+                <RefreshCcw className="mr-1.5 h-4 w-4" />
+                {regenerateQr.isPending ? 'Regenerating...' : 'Regenerate QR'}
+              </Button>
+              <Button size="sm" variant="outline" onClick={handlePrint}>
+                <Printer className="mr-1.5 h-4 w-4" />
+                Print QR
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleDownload}>
+                <Download className="mr-1.5 h-4 w-4" />
+                Download QR
+              </Button>
+            </>
+          )}
+        </div>
+      </CardContent>
+
+      <Dialog open={confirmOpen} onOpenChange={(open) => !open && setConfirmOpen(false)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Regenerate Attendance QR?</DialogTitle>
+            <DialogDescription>
+              The existing QR code will stop working. A new QR code will be generated for this branch.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>Cancel</Button>
+            <Button
+              onClick={() => {
+                regenerateQr.mutate(undefined, { onSuccess: () => setConfirmOpen(false) })
+              }}
+              disabled={regenerateQr.isPending}
+            >
+              {regenerateQr.isPending ? 'Regenerating...' : 'Regenerate'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  )
+}
+
 export default function AdminBranchDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -259,6 +430,8 @@ export default function AdminBranchDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      <BranchQrCard branch={branch} />
 
       <EditBranchDialog branch={editOpen ? branch : null} onClose={() => setEditOpen(false)} />
       <DeleteBranchDialog

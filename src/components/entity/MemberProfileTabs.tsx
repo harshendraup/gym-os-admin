@@ -2,7 +2,7 @@ import { useState } from 'react'
 import {
   Mail, Phone, MapPin, Calendar, Pencil, ArrowLeft, Dumbbell, UserCog, Salad,
   Info, User as UserIcon, HeartPulse, Apple, CreditCard, TrendingUp, CalendarCheck,
-  Plus, ShieldAlert, StickyNote, Power, PowerOff,
+  Plus, ShieldAlert, StickyNote, Power, PowerOff, QrCode,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -194,6 +194,23 @@ export function MemberProfileTabs({
               <DetailRow icon={Phone} label="Mobile" value={member.mobile ?? '—'} />
               {branchLabel && <DetailRow icon={MapPin} label="Branch" value={branchLabel} />}
               <DetailRow icon={Calendar} label="Joined" value={member.createdAt ? formatDate(member.createdAt) : '—'} />
+            </CardContent>
+          </Card>
+
+          <Card className="border-white/60 bg-white/65 shadow-lg backdrop-blur-md">
+            <CardContent className="p-6">
+              <div className="mb-3 flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
+                  <QrCode className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-slate-900">Attendance Check-in</h3>
+                  <p className="text-xs text-slate-500">Branch QR is used for member attendance.</p>
+                </div>
+              </div>
+              <p className="text-sm text-slate-600">
+                The current backend supports branch attendance QR codes, not a separate member QR token. Members check in by scanning the branch QR from the selected branch.
+              </p>
             </CardContent>
           </Card>
           {(fitnessPrefs.data?.injuries || fitnessPrefs.data?.physicalLimitations) && (
