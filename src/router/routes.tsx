@@ -64,6 +64,17 @@ const SubAdminMemberDetailPage = lazy(() => import('@/pages/sub-admin/SubAdminMe
 const SubAdminMembershipsPage = lazy(() => import('@/pages/sub-admin/SubAdminMembershipsPage'))
 const SubAdminPaymentsPage = lazy(() => import('@/pages/sub-admin/SubAdminPaymentsPage'))
 
+// Trainer
+const TrainerDashboardPage = lazy(() => import('@/pages/trainer/TrainerDashboardPage'))
+const TrainerProfilePage = lazy(() => import('@/pages/trainer/TrainerProfilePage'))
+const TrainerMembersPage = lazy(() => import('@/pages/trainer/TrainerMembersPage'))
+const TrainerMemberDetailPage = lazy(() => import('@/pages/trainer/TrainerMemberDetailPage'))
+const TrainerTrainingPage = lazy(() => import('@/pages/trainer/TrainerTrainingPage'))
+const TrainerLibrariesPage = lazy(() => import('@/pages/trainer/TrainerLibrariesPage'))
+const TrainerAttendancePage = lazy(() => import('@/pages/trainer/TrainerAttendancePage'))
+const TrainerNutritionPage = lazy(() => import('@/pages/trainer/TrainerNutritionPage'))
+const TrainerSessionsPage = lazy(() => import('@/pages/trainer/TrainerSessionsPage'))
+
 // Member
 const MemberPayPage = lazy(() => import('@/pages/member/MemberPayPage'))
 
@@ -156,6 +167,23 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="pay" replace /> },
       { path: 'pay', element: wrap(MemberPayPage) },
+    ],
+  },
+
+  {
+    path: 'trainer',
+    element: <RoleLayout allowed={['trainer']} />,
+    children: [
+      { index: true, element: <Navigate to="dashboard" replace /> },
+      { path: 'dashboard', element: wrap(TrainerDashboardPage) },
+      { path: 'members', element: wrap(TrainerMembersPage) },
+      { path: 'members/:memberId', element: wrap(TrainerMemberDetailPage) },
+      { path: 'workout-assignments', element: wrap(TrainerTrainingPage) },
+      { path: 'libraries', element: wrap(TrainerLibrariesPage) },
+      { path: 'attendance', element: wrap(TrainerAttendancePage) },
+      { path: 'nutrition', element: wrap(TrainerNutritionPage) },
+      { path: 'sessions', element: wrap(TrainerSessionsPage) },
+      { path: 'profile', element: wrap(TrainerProfilePage) },
     ],
   },
 

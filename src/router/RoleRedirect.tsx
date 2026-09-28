@@ -5,6 +5,7 @@ const ROLE_HOME: Record<string, string> = {
   superadmin: '/superadmin/dashboard',
   admin: '/admin/dashboard',
   sub_admin: '/sub-admin/dashboard',
+  trainer: '/trainer/dashboard',
   member: '/member/pay',
 }
 

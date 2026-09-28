@@ -61,6 +61,8 @@ interface MemberProfileTabsProps {
   currentTrainerName?: string
   dietAssignments: DietAssignmentRecord[]
   dietTrainerName: (trainerId: number | null) => string
+  readOnly?: boolean
+  showInsights?: boolean
 }
 
 /**
@@ -72,7 +74,8 @@ interface MemberProfileTabsProps {
  */
 export function MemberProfileTabs({
   member, roleLabel, branchLabel, onBack, onToggleStatus, isTogglingStatus,
-  trainerOptions, currentTrainerName, dietAssignments, dietTrainerName,
+  trainerOptions, currentTrainerName, dietAssignments, dietTrainerName, readOnly = false,
+  showInsights = true,
 }: MemberProfileTabsProps) {
   const memberId = Number(member.id)
   const displayName = member.fullName ?? member.firstName
@@ -230,9 +233,9 @@ export function MemberProfileTabs({
             <CardContent className="p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-900">Personal & Contact</h3>
-                <Button size="sm" variant="outline" onClick={() => setEditPersonalOpen(true)}>
+                {!readOnly && <Button size="sm" variant="outline" onClick={() => setEditPersonalOpen(true)}>
                   <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit
-                </Button>
+                </Button>}
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <DetailRow icon={UserIcon} label="Gender" value={member.gender ?? '—'} />
@@ -257,9 +260,9 @@ export function MemberProfileTabs({
             <CardContent className="p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-900">Fitness Profile</h3>
-                <Button size="sm" variant="outline" onClick={() => setEditFitnessOpen(true)}>
+                {!readOnly && <Button size="sm" variant="outline" onClick={() => setEditFitnessOpen(true)}>
                   <Pencil className="mr-1.5 h-3.5 w-3.5" /> {fitnessPrefs.data ? 'Edit' : 'Set Up'}
-                </Button>
+                </Button>}
               </div>
               {!fitnessPrefs.data ? (
                 <p className="text-sm text-slate-400">No fitness profile recorded yet.</p>
@@ -301,9 +304,9 @@ export function MemberProfileTabs({
             <CardContent className="p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-900">Latest Nutrition Assessment</h3>
-                <Button size="sm" variant="outline" onClick={() => setDietsOpen(true)}>
+                {!readOnly && <Button size="sm" variant="outline" onClick={() => setDietsOpen(true)}>
                   <Salad className="mr-1.5 h-3.5 w-3.5" /> Manage Diet Plans
-                </Button>
+                </Button>}
               </div>
               {!latestAssessment ? (
                 <p className="text-sm text-slate-400">No nutrition assessment recorded yet — open Manage Diet Plans to start one.</p>
@@ -326,9 +329,9 @@ export function MemberProfileTabs({
             <CardContent className="p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-900">Membership</h3>
-                <Button size="sm" variant="outline" onClick={() => setAssignMembershipOpen(true)}>
+                {!readOnly && <Button size="sm" variant="outline" onClick={() => setAssignMembershipOpen(true)}>
                   <CreditCard className="mr-1.5 h-3.5 w-3.5" /> {membershipPlan ? 'Change' : 'Assign'}
-                </Button>
+                </Button>}
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <DetailRow icon={CreditCard} label="Plan" value={membershipPlan?.membershipName ?? '—'} />
@@ -343,9 +346,9 @@ export function MemberProfileTabs({
             <CardContent className="p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-900">Assigned Trainer</h3>
-                <Button size="sm" variant="outline" onClick={() => setAssignTrainerOpen(true)}>
+                {!readOnly && <Button size="sm" variant="outline" onClick={() => setAssignTrainerOpen(true)}>
                   <UserCog className="mr-1.5 h-3.5 w-3.5" /> {currentTrainerName ? 'Change' : 'Assign'}
-                </Button>
+                </Button>}
               </div>
               <p className="text-sm text-slate-700">{currentTrainerName ?? 'No trainer assigned'}</p>
             </CardContent>
@@ -358,13 +361,15 @@ export function MemberProfileTabs({
                 <h3 className="text-sm font-semibold text-slate-900">Trainer Notes</h3>
                 <span className="text-xs text-slate-400">(private — never shown to the member)</span>
               </div>
-              <Textarea
+              {readOnly ? (
+                <p className="whitespace-pre-wrap text-sm text-slate-700">{trainerNotes || 'No trainer notes recorded.'}</p>
+              ) : <Textarea
                 rows={3}
                 placeholder="Ongoing notes about this member's training..."
                 value={trainerNotesDraft ?? trainerNotes}
                 onChange={(e) => setTrainerNotesDraft(e.target.value)}
-              />
-              {trainerNotesDraft !== null && (
+              />}
+              {!readOnly && trainerNotesDraft !== null && (
                 <div className="mt-2 flex justify-end gap-2">
                   <Button size="sm" variant="outline" onClick={() => setTrainerNotesDraft(null)}>Cancel</Button>
                   <Button size="sm" onClick={saveTrainerNotes} disabled={updateUser.isPending}>
@@ -381,9 +386,9 @@ export function MemberProfileTabs({
             <CardContent className="p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-900">Measurement History</h3>
-                <Button size="sm" onClick={() => setRecordMeasurementOpen(true)}>
+                {!readOnly && <Button size="sm" onClick={() => setRecordMeasurementOpen(true)}>
                   <Plus className="mr-1.5 h-3.5 w-3.5" /> Record Measurement
-                </Button>
+                </Button>}
               </div>
               {latestMeasurement && previousMeasurement && (
                 <p className="mb-3 rounded-lg bg-primary/5 px-3 py-2 text-xs text-slate-600">
@@ -432,9 +437,9 @@ export function MemberProfileTabs({
             <CardContent className="p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-900">Attendance</h3>
-                <Button size="sm" onClick={() => setLogCheckInOpen(true)}>
+                {!readOnly && <Button size="sm" onClick={() => setLogCheckInOpen(true)}>
                   <Plus className="mr-1.5 h-3.5 w-3.5" /> Log Check-in
-                </Button>
+                </Button>}
               </div>
               {attendanceStats.data && (
                 <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -469,7 +474,7 @@ export function MemberProfileTabs({
 
     <div className="order-1 xl:order-1 xl:col-span-3">
       <div className="xl:sticky xl:top-4">
-        <AIInsightsPanel
+        {showInsights && <AIInsightsPanel
           user={member}
           ctx={{
             dietCount: dietAssignments.length,
@@ -487,7 +492,7 @@ export function MemberProfileTabs({
             nutritionGoal: latestAssessment?.goal,
             membershipStatus: member.status,
           }}
-        />
+        />}
       </div>
     </div>
     </div>

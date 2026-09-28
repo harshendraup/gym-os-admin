@@ -4,7 +4,7 @@ import { useAuthStore, selectRole } from '@/store/auth.store'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard, Users, Dumbbell, UserCog, Zap, Building2, Salad, Activity, CreditCard,
-  Smartphone, Wallet, Handshake, Megaphone,
+  Smartphone, Wallet, Handshake, Megaphone, CalendarCheck,
 } from 'lucide-react'
 
 const navItems = [
@@ -39,6 +39,16 @@ const navItems = [
   { to: '/sub-admin/payments', label: 'Payments', icon: Wallet, roles: ['sub_admin'] },
   { to: '/sub-admin/memberships', label: 'Memberships', icon: CreditCard, roles: ['sub_admin'] },
   { to: '/sub-admin/members', label: 'Members', icon: Users, roles: ['sub_admin'] },
+
+  // Trainer
+  { to: '/trainer/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['trainer'] },
+  { to: '/trainer/members', label: 'My Members', icon: Users, roles: ['trainer'] },
+  { to: '/trainer/workout-assignments', label: 'Workout Assignments', icon: Dumbbell, roles: ['trainer'] },
+  { to: '/trainer/libraries', label: 'Training Library', icon: Activity, roles: ['trainer'] },
+  { to: '/trainer/attendance', label: 'Attendance', icon: CalendarCheck, roles: ['trainer'] },
+  { to: '/trainer/nutrition', label: 'Nutrition', icon: Salad, roles: ['trainer'] },
+  { to: '/trainer/sessions', label: 'PT Schedule', icon: CalendarCheck, roles: ['trainer'] },
+  { to: '/trainer/profile', label: 'Profile', icon: UserCog, roles: ['trainer'] },
 ]
 
 export default function Sidebar() {
