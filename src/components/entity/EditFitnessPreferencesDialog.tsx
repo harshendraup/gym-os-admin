@@ -33,7 +33,6 @@ const HEALTH_FIELDS = [
   { key: 'injuries', label: 'Injuries' },
   { key: 'physicalLimitations', label: 'Physical Limitations' },
   { key: 'exerciseRestrictions', label: 'Exercise Restrictions' },
-  { key: 'mobilityLimitations', label: 'Mobility Limitations' },
 ] as const
 
 const schema = z.object({
@@ -60,7 +59,6 @@ const schema = z.object({
   injuries: z.string().optional(),
   physicalLimitations: z.string().optional(),
   exerciseRestrictions: z.string().optional(),
-  mobilityLimitations: z.string().optional(),
   // Fitness assessment
   strengthLevel: z.string().optional(),
   cardioLevel: z.string().optional(),
@@ -112,7 +110,6 @@ export function EditFitnessPreferencesDialog({ open, onClose, member, preference
       injuries: preferences?.injuries ?? '',
       physicalLimitations: preferences?.physicalLimitations ?? '',
       exerciseRestrictions: preferences?.exerciseRestrictions ?? '',
-      mobilityLimitations: preferences?.mobilityLimitations ?? '',
       strengthLevel: preferences?.strengthLevel ?? undefined,
       cardioLevel: preferences?.cardioLevel ?? undefined,
       mobilityLevel: preferences?.mobilityLevel ?? undefined,
@@ -169,7 +166,6 @@ export function EditFitnessPreferencesDialog({ open, onClose, member, preference
         injuries: values.injuries || undefined,
         physicalLimitations: values.physicalLimitations || undefined,
         exerciseRestrictions: values.exerciseRestrictions || undefined,
-        mobilityLimitations: values.mobilityLimitations || undefined,
         strengthLevel: (values.strengthLevel || undefined) as FitnessLevel | undefined,
         cardioLevel: (values.cardioLevel || undefined) as FitnessLevel | undefined,
         mobilityLevel: (values.mobilityLevel || undefined) as FitnessLevel | undefined,

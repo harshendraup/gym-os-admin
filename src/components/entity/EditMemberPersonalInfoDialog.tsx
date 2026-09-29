@@ -19,7 +19,7 @@ const schema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().optional(),
   gender: z.string().optional(),
-  dateOfBirth: z.string().optional(),
+  dateOfBirth: z.string().refine((value) => !value || value <= new Date().toISOString().slice(0, 10), 'Date of birth cannot be in the future').optional(),
   email: z.string().email('Valid email required').optional().or(z.literal('')),
   mobile: z.string().optional(),
   alternateMobile: z.string().optional(),
@@ -30,6 +30,7 @@ const schema = z.object({
   country: z.string().optional(),
   pincode: z.string().optional(),
   emergencyContactName: z.string().optional(),
+  emergencyContactRelationship: z.string().optional(),
   emergencyContactNumber: z.string().optional(),
 })
 type FormValues = z.infer<typeof schema>
@@ -64,6 +65,7 @@ export function EditMemberPersonalInfoDialog({
         country: member.country ?? '',
         pincode: member.pincode ?? '',
         emergencyContactName: member.emergencyContactName ?? '',
+        emergencyContactRelationship: member.emergencyContactRelationship ?? '',
         emergencyContactNumber: member.emergencyContactNumber ?? '',
       })
     }
@@ -89,6 +91,7 @@ export function EditMemberPersonalInfoDialog({
         country: values.country || undefined,
         pincode: values.pincode || undefined,
         emergencyContactName: values.emergencyContactName || undefined,
+        emergencyContactRelationship: values.emergencyContactRelationship || undefined,
         emergencyContactNumber: values.emergencyContactNumber || undefined,
       },
       { onSuccess: onClose }
@@ -149,6 +152,7 @@ export function EditMemberPersonalInfoDialog({
           <Section title="Emergency Contact">
             <div className="grid grid-cols-2 gap-3">
               <Field label="Name"><Input {...register('emergencyContactName')} /></Field>
+              <Field label="Relationship"><Input placeholder="Parent, spouse, friend" {...register('emergencyContactRelationship')} /></Field>
               <Field label="Number"><Input {...register('emergencyContactNumber')} /></Field>
             </div>
           </Section>

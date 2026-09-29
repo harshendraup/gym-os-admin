@@ -9,6 +9,9 @@ export interface AuthUser {
   email: string | null
   mobile: string | null
   alternateMobile: string | null
+  emergencyContactName: string | null
+  emergencyContactRelationship: string | null
+  emergencyContactNumber: string | null
   photo: unknown | null
   businessId: number | null
   branchId: number | null

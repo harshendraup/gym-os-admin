@@ -30,6 +30,7 @@ export interface ManagedUser {
   country: string | null
   pincode: string | null
   emergencyContactName: string | null
+  emergencyContactRelationship: string | null
   emergencyContactNumber: string | null
   bloodGroup: string | null
   joiningDate: string | null
@@ -60,6 +61,7 @@ export interface ManagedUserPayload {
   country?: string
   pincode?: string
   emergencyContactName?: string
+  emergencyContactRelationship?: string
   emergencyContactNumber?: string
   bloodGroup?: string
   joiningDate?: string

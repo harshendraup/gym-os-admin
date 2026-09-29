@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Flame, Beef, Wheat, Droplet } from 'lucide-react'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from '@/components/ui/dialog'
@@ -12,7 +11,6 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { useCreateNutritionAssessment, useUpdateNutritionAssessment } from '@/hooks/useNutritionAssessments'
-import { suggestTargetsFromProfile } from '@/lib/nutrition-calc'
 import type {
   NutritionGoal, ActivityLevel, DietType, NutritionAssessmentRecord,
 } from '@/api/nutrition-assessments.api'
@@ -24,11 +22,6 @@ const DIET_TYPES: DietType[] = ['Vegetarian', 'Non-Vegetarian', 'Eggetarian', 'V
 
 const schema = z.object({
   goal: z.enum(['Weight Loss', 'Muscle Gain', 'Fat Loss', 'Fitness']),
-  currentWeight: z.string().optional(),
-  targetWeight: z.string().optional(),
-  height: z.string().optional(),
-  waist: z.string().optional(),
-  bodyFatPercentage: z.string().optional(),
   activityLevel: z.enum(['Sedentary', 'Light', 'Moderate', 'Active', 'Very Active']),
   workoutFrequency: z.string().optional(),
   workoutTime: z.string().optional(),
@@ -75,11 +68,6 @@ export function NutritionAssessmentDialog({ open, onClose, member, assessment, o
     if (!open) return
     reset({
       goal: assessment?.goal ?? 'Fitness',
-      currentWeight: assessment?.currentWeight ?? '',
-      targetWeight: assessment?.targetWeight ?? '',
-      height: assessment?.height ?? '',
-      waist: assessment?.waist ?? '',
-      bodyFatPercentage: assessment?.bodyFatPercentage ?? '',
       activityLevel: assessment?.activityLevel ?? 'Moderate',
       workoutFrequency: assessment?.workoutFrequency ? String(assessment.workoutFrequency) : '',
       workoutTime: assessment?.workoutTime ?? '',
@@ -103,26 +91,9 @@ export function NutritionAssessmentDialog({ open, onClose, member, assessment, o
   const goal = watch('goal')
   const activityLevel = watch('activityLevel')
   const dietType = watch('dietType')
-  const currentWeight = watch('currentWeight')
-  const height = watch('height')
-
-  const suggestedTargets = suggestTargetsFromProfile({
-    weightKg: currentWeight ? Number(currentWeight) : undefined,
-    heightCm: height ? Number(height) : undefined,
-    age: member.age,
-    gender: member.gender,
-    activityLevel,
-    goal,
-  })
-
   const onSubmit = (values: FormValues, status: 'Draft' | 'Completed') => {
     const payload = {
       goal: values.goal,
-      currentWeight: values.currentWeight ? Number(values.currentWeight) : undefined,
-      targetWeight: values.targetWeight ? Number(values.targetWeight) : undefined,
-      height: values.height ? Number(values.height) : undefined,
-      waist: values.waist ? Number(values.waist) : undefined,
-      bodyFatPercentage: values.bodyFatPercentage ? Number(values.bodyFatPercentage) : undefined,
       activityLevel: values.activityLevel,
       workoutFrequency: values.workoutFrequency ? Number(values.workoutFrequency) : undefined,
       workoutTime: values.workoutTime || undefined,
@@ -161,7 +132,7 @@ export function NutritionAssessmentDialog({ open, onClose, member, assessment, o
         </DialogHeader>
 
         <form className="flex-1 space-y-6 overflow-y-auto pr-1" onSubmit={(e) => e.preventDefault()}>
-          <Section title="Goal & Body">
+          <Section title="Nutrition Summary">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               <Field label="Goal">
                 <Select value={goal} onValueChange={(v) => setValue('goal', v as NutritionGoal)}>
@@ -169,34 +140,8 @@ export function NutritionAssessmentDialog({ open, onClose, member, assessment, o
                   <SelectContent>{GOALS.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
                 </Select>
               </Field>
-              <Field label="Current Weight (kg)"><Input type="number" {...register('currentWeight')} /></Field>
-              <Field label="Target Weight (kg)"><Input type="number" {...register('targetWeight')} /></Field>
-              <Field label="Height (cm)"><Input type="number" {...register('height')} /></Field>
-              <Field label="Waist (cm)"><Input type="number" {...register('waist')} /></Field>
-              <Field label="Body Fat %"><Input type="number" {...register('bodyFatPercentage')} /></Field>
             </div>
-          </Section>
-
-          <Section title="Suggested Daily Targets">
-            {suggestedTargets ? (
-              <>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  <Stat icon={Flame} label={`${suggestedTargets.calories} kcal`} />
-                  <Stat icon={Beef} label={`${suggestedTargets.protein}g protein`} />
-                  <Stat icon={Wheat} label={`${suggestedTargets.carbs}g carbs`} />
-                  <Stat icon={Droplet} label={`${suggestedTargets.fat}g fat`} />
-                </div>
-                <p className="text-xs text-slate-500">
-                  Estimate from {member.fullName ?? member.firstName}'s age/gender, current weight, height and
-                  activity level (Mifflin-St Jeor) — the trainer sets the final targets on the plan itself.
-                </p>
-              </>
-            ) : (
-              <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
-                Add current weight and height above, and make sure {member.fullName ?? member.firstName}'s age and
-                gender are set on their profile, to see suggested targets here.
-              </p>
-            )}
+            <p className="text-xs text-muted-foreground">Physical metrics are maintained in Progress. Record a measurement there when they change.</p>
           </Section>
 
           <Section title="Lifestyle & Activity">
@@ -276,10 +221,3 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-function Stat({ icon: Icon, label }: { icon: any; label: string }) {
-  return (
-    <span className="flex items-center gap-1.5 rounded-lg bg-primary/5 px-2.5 py-1.5 text-sm text-slate-700">
-      <Icon className="h-3.5 w-3.5 text-primary" /> {label}
-    </span>
-  )
-}

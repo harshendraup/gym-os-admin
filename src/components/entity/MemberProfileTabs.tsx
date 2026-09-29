@@ -2,7 +2,7 @@ import { useState } from 'react'
 import {
   Mail, Phone, MapPin, Calendar, Pencil, ArrowLeft, Dumbbell, UserCog, Salad,
   Info, User as UserIcon, HeartPulse, Apple, CreditCard, TrendingUp, CalendarCheck,
-  Plus, ShieldAlert, StickyNote, Power, PowerOff, QrCode,
+  Plus, ShieldAlert, StickyNote, Power, PowerOff,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -202,20 +202,20 @@ export function MemberProfileTabs({
 
           <Card className="border-white/60 bg-white/65 shadow-lg backdrop-blur-md">
             <CardContent className="p-6">
-              <div className="mb-3 flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
-                  <QrCode className="h-4 w-4" />
+              <h3 className="text-sm font-semibold text-slate-900">Current Fitness Status</h3>
+              {latestMeasurement ? (
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <QuickStat label="Weight" value={latestMeasurement.weight ? `${latestMeasurement.weight} kg` : '—'} />
+                  <QuickStat label="BMI" value={latestMeasurement.bmi ?? '—'} />
+                  <QuickStat label="Body Fat" value={latestMeasurement.bodyFatPercentage ? `${latestMeasurement.bodyFatPercentage}%` : '—'} />
+                  <QuickStat label="Waist" value={latestMeasurement.waist ? `${latestMeasurement.waist} cm` : '—'} />
                 </div>
-                <div>
-                  <h3 className="text-base font-semibold text-slate-900">Attendance Check-in</h3>
-                  <p className="text-xs text-slate-500">Branch QR is used for member attendance.</p>
-                </div>
-              </div>
-              <p className="text-sm text-slate-600">
-                The current backend supports branch attendance QR codes, not a separate member QR token. Members check in by scanning the branch QR from the selected branch.
-              </p>
+              ) : (
+                <div className="mt-3 rounded-lg border border-dashed border-slate-200 p-4 text-sm text-muted-foreground">No measurements recorded yet. Open Progress to record the first check-in.</div>
+              )}
             </CardContent>
           </Card>
+
           {(fitnessPrefs.data?.injuries || fitnessPrefs.data?.physicalLimitations) && (
             <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-4">
               <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
@@ -249,7 +249,7 @@ export function MemberProfileTabs({
                   label="Address"
                   value={[member.address, member.city, member.state, member.country, member.pincode].filter(Boolean).join(', ') || '—'}
                 />
-                <DetailRow icon={Phone} label="Emergency Contact" value={member.emergencyContactName ? `${member.emergencyContactName} — ${member.emergencyContactNumber ?? '—'}` : '—'} />
+                <DetailRow icon={Phone} label="Emergency Contact" value={member.emergencyContactName ? [member.emergencyContactName, member.emergencyContactRelationship, member.emergencyContactNumber].filter(Boolean).join(' — ') : '—'} />
               </div>
             </CardContent>
           </Card>
@@ -285,14 +285,6 @@ export function MemberProfileTabs({
                   <DetailRow icon={ShieldAlert} label="Injuries" value={fitnessPrefs.data.injuries || 'None'} />
                   <DetailRow icon={ShieldAlert} label="Physical Limitations" value={fitnessPrefs.data.physicalLimitations || 'None'} />
                   <DetailRow icon={ShieldAlert} label="Exercise Restrictions" value={fitnessPrefs.data.exerciseRestrictions || 'None'} />
-                  <DetailRow icon={ShieldAlert} label="Mobility Limitations" value={fitnessPrefs.data.mobilityLimitations || 'None'} />
-                  <DetailRow icon={Dumbbell} label="Strength Level" value={fitnessPrefs.data.strengthLevel ?? '—'} />
-                  <DetailRow icon={Dumbbell} label="Cardio Level" value={fitnessPrefs.data.cardioLevel ?? '—'} />
-                  <DetailRow icon={Dumbbell} label="Mobility Level" value={fitnessPrefs.data.mobilityLevel ?? '—'} />
-                  <DetailRow icon={Dumbbell} label="Overall Fitness Level" value={fitnessPrefs.data.overallFitnessLevel ?? '—'} />
-                  {fitnessPrefs.data.fitnessAssessmentNotes && (
-                    <DetailRow icon={ShieldAlert} label="Trainer Assessment Notes" value={fitnessPrefs.data.fitnessAssessmentNotes} />
-                  )}
                 </div>
               )}
             </CardContent>
@@ -309,13 +301,11 @@ export function MemberProfileTabs({
                 </Button>}
               </div>
               {!latestAssessment ? (
-                <p className="text-sm text-slate-400">No nutrition assessment recorded yet — open Manage Diet Plans to start one.</p>
+                <p className="rounded-lg border border-dashed border-slate-200 p-4 text-sm text-muted-foreground">Nutrition assessment not completed.</p>
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <DetailRow icon={Apple} label="Goal" value={latestAssessment.goal} />
                   <DetailRow icon={Apple} label="Diet Type" value={latestAssessment.dietType} />
-                  <DetailRow icon={Apple} label="Current Weight" value={latestAssessment.currentWeight ? `${latestAssessment.currentWeight} kg` : '—'} />
-                  <DetailRow icon={Apple} label="Target Weight" value={latestAssessment.targetWeight ? `${latestAssessment.targetWeight} kg` : '—'} />
                   <DetailRow icon={Apple} label="Meals / Day" value={String(latestAssessment.mealsPerDay ?? '—')} />
                   <DetailRow icon={ShieldAlert} label="Allergies" value={latestAssessment.allergies || '—'} />
                 </div>
@@ -334,7 +324,7 @@ export function MemberProfileTabs({
                 </Button>}
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <DetailRow icon={CreditCard} label="Plan" value={membershipPlan?.membershipName ?? '—'} />
+                <DetailRow icon={CreditCard} label="Plan" value={membershipPlan?.membershipName ?? 'No active membership'} />
                 <DetailRow icon={Info} label="Status" value={member.status} />
                 <DetailRow icon={Calendar} label="Joining Date" value={effectiveJoiningDate ? formatDate(effectiveJoiningDate) : '—'} />
                 {branchLabel && <DetailRow icon={MapPin} label="Branch" value={branchLabel} />}
@@ -397,7 +387,7 @@ export function MemberProfileTabs({
                 </p>
               )}
               {!measurements.data || measurements.data.length === 0 ? (
-                <p className="text-sm text-slate-400">No measurements recorded yet.</p>
+                <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center"><p className="text-sm font-medium text-slate-700">No measurements recorded yet.</p><p className="mt-1 text-xs text-muted-foreground">Record a dated measurement to start the member’s progress history.</p></div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
@@ -430,6 +420,19 @@ export function MemberProfileTabs({
               )}
             </CardContent>
           </Card>
+          {fitnessPrefs.data && (fitnessPrefs.data.strengthLevel || fitnessPrefs.data.cardioLevel || fitnessPrefs.data.overallFitnessLevel) && (
+            <Card className="border-white/60 bg-white/65 shadow-lg backdrop-blur-md">
+              <CardContent className="p-6">
+                <h3 className="text-sm font-semibold text-slate-900">Latest Fitness Assessment</h3>
+                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  <QuickStat label="Strength" value={fitnessPrefs.data.strengthLevel ?? '—'} />
+                  <QuickStat label="Cardio" value={fitnessPrefs.data.cardioLevel ?? '—'} />
+                  <QuickStat label="Mobility" value={fitnessPrefs.data.mobilityLevel ?? '—'} />
+                  <QuickStat label="Overall" value={fitnessPrefs.data.overallFitnessLevel ?? '—'} />
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="attendance" className="mt-4 space-y-4">
@@ -451,10 +454,8 @@ export function MemberProfileTabs({
               )}
               {!attendanceLogs.data || attendanceLogs.data.length === 0 ? (
                 <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center">
-                  <p className="text-sm font-medium text-slate-600">No check-ins yet</p>
-                  <p className="mt-1 text-xs text-slate-400">
-                    Once {displayName} checks in, attendance trends and progress will appear here.
-                  </p>
+                  <p className="text-sm font-medium text-slate-600">No attendance records yet.</p>
+                  <p className="mt-1 text-xs text-slate-400">Attendance history will appear here after the first check-in.</p>
                 </div>
               ) : (
                 <div className="space-y-1">
