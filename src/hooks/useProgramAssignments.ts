@@ -11,6 +11,7 @@ import { toast } from 'sonner'
 export const programAssignmentKeys = {
   all: () => ['program-assignments'] as const,
   logs: (assignmentId: number) => ['program-assignments', assignmentId, 'logs'] as const,
+  schedule: (assignmentId: number) => ['program-assignments', assignmentId, 'schedule'] as const,
 }
 
 /** The backend already scopes this per the caller's role. */
@@ -87,6 +88,22 @@ export function useCreateAssignmentLog(assignmentId: number) {
     },
     onError: (error: any) => {
       toast.error(getApiErrorMessage(error, 'Failed to log workout'))
+    },
+  })
+}
+
+export function useGenerateSchedule() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (assignmentId: number) => programAssignmentsApi.generateSchedule(assignmentId),
+    onSuccess: (_, assignmentId) => {
+      queryClient.invalidateQueries({ queryKey: programAssignmentKeys.all() })
+      queryClient.invalidateQueries({ queryKey: programAssignmentKeys.schedule(assignmentId) })
+      toast.success('Workout schedule generated')
+    },
+    onError: (error: any) => {
+      toast.error(getApiErrorMessage(error, 'Failed to generate schedule'))
     },
   })
 }

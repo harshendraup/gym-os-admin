@@ -80,4 +80,7 @@ export const programAssignmentsApi = {
 
   deleteLog: (assignmentId: number, logId: number) =>
     del<void>(`/program-assignments/${assignmentId}/logs/${logId}`),
+
+  generateSchedule: (assignmentId: number) =>
+    post<unknown>(`/program-assignments/${assignmentId}/generate-schedule`, {}),
 }

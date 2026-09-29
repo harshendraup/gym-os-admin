@@ -15,7 +15,9 @@ export function formatCurrency(paise: number): string {
 }
 
 export function formatDate(date: string | Date, fmt = 'dd MMM yyyy'): string {
-  return format(typeof date === 'string' ? new Date(date) : date, fmt)
+  const dateObj = typeof date === 'string' ? new Date(date) : date
+  if (isNaN(dateObj.getTime())) return 'Invalid date'
+  return format(dateObj, fmt)
 }
 
 export function getInitials(name: string): string {

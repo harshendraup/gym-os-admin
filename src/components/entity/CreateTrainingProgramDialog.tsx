@@ -38,6 +38,7 @@ interface ExerciseDraft {
 interface DayDraft {
   key: string
   dayName: string
+  dayOfWeek: string
   restDay: boolean
   exercises: ExerciseDraft[]
 }
@@ -50,8 +51,14 @@ function emptyExercise(): ExerciseDraft {
 }
 
 function emptyDay(dayNumber: number): DayDraft {
-  return { key: nextKey(), dayName: `Day ${dayNumber}`, restDay: false, exercises: [emptyExercise()] }
+  return { key: nextKey(), dayName: `Day ${dayNumber}`, dayOfWeek: '', restDay: false, exercises: [emptyExercise()] }
 }
+
+const WEEKDAYS = [
+  { value: 1, label: 'Monday' }, { value: 2, label: 'Tuesday' }, { value: 3, label: 'Wednesday' },
+  { value: 4, label: 'Thursday' }, { value: 5, label: 'Friday' }, { value: 6, label: 'Saturday' },
+  { value: 7, label: 'Sunday' },
+]
 
 interface CreateTrainingProgramDialogProps {
   open: boolean
@@ -177,6 +184,7 @@ export function CreateTrainingProgramDialog({
 
     const payloadDays: ProgramDayInput[] = days.map((d, dayIndex) => ({
       dayNumber: dayIndex + 1,
+      dayOfWeek: d.dayOfWeek ? Number(d.dayOfWeek) : undefined,
       dayName: d.dayName || undefined,
       restDay: d.restDay,
       orderIndex: dayIndex,
@@ -302,11 +310,18 @@ export function CreateTrainingProgramDialog({
                     </div>
                     <span className="text-xs font-mono text-muted-foreground w-14">Day {dayIndex + 1}</span>
                     <Input
-                      className="flex-1"
+                      className="min-w-32 flex-1"
                       placeholder="Push Day"
                       value={day.dayName}
                       onChange={(e) => updateDay(day.key, { dayName: e.target.value })}
                     />
+                    <Select value={day.dayOfWeek || 'sequence'} onValueChange={(value) => updateDay(day.key, { dayOfWeek: value === 'sequence' ? '' : value })}>
+                      <SelectTrigger className="h-9 w-36 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sequence">Auto sequence</SelectItem>
+                        {WEEKDAYS.map((weekday) => <SelectItem key={weekday.value} value={String(weekday.value)}>{weekday.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
                     <label className="flex items-center gap-1.5 text-xs whitespace-nowrap">
                       <input
                         type="checkbox"

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
-import { Plus, Search } from 'lucide-react'
+import { Plus, Search, Calendar } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,7 +16,7 @@ import { CreateExerciseDialog } from '@/components/entity/CreateExerciseDialog'
 import { ExerciseLibrarySetupPrompt } from '@/components/entity/ExerciseLibrarySetupPrompt'
 import { ConfigureExerciseLibraryDialog } from '@/components/entity/ConfigureExerciseLibraryDialog'
 import { ViewExerciseLibraryDialog } from '@/components/entity/ViewExerciseLibraryDialog'
-import { useProgramAssignments, useDeleteProgramAssignment, useUpdateProgramAssignment } from '@/hooks/useProgramAssignments'
+import { useProgramAssignments, useDeleteProgramAssignment, useUpdateProgramAssignment, useGenerateSchedule } from '@/hooks/useProgramAssignments'
 import { useTrainingPrograms, useDeleteTrainingProgram } from '@/hooks/useTrainingPrograms'
 import { useExercises, useDeleteExercise } from '@/hooks/useExercises'
 import { useExerciseLibraryConfig, useDeleteExerciseLibraryConfig } from '@/hooks/useExerciseLibraryConfig'
@@ -42,6 +42,8 @@ function assignmentColumns(
   programName: (id: number) => string,
   onStatusChange: (a: ProgramAssignmentRecord, status: ProgramAssignmentStatus) => void,
   onDelete: (a: ProgramAssignmentRecord) => void,
+  onGenerateSchedule: (a: ProgramAssignmentRecord) => void,
+  isGenerating: boolean,
   deletingId: number | null
 ): ColumnDef<ProgramAssignmentRecord>[] {
   return [
@@ -65,7 +67,18 @@ function assignmentColumns(
       id: 'actions',
       header: '',
       cell: ({ row }) => (
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          {row.original.status === 'active' && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onGenerateSchedule(row.original)}
+              disabled={isGenerating}
+            >
+              <Calendar className="mr-1.5 h-3.5 w-3.5" />
+              {isGenerating ? 'Generating...' : 'Generate Schedule'}
+            </Button>
+          )}
           <Button size="sm" variant="destructive" onClick={() => onDelete(row.original)} disabled={deletingId === row.original.id}>
             Remove
           </Button>
@@ -136,6 +149,7 @@ export default function AdminTrainingProgramsPage() {
 
   const deleteAssignment = useDeleteProgramAssignment()
   const updateAssignment = useUpdateProgramAssignment()
+  const generateSchedule = useGenerateSchedule()
   const deleteProgram = useDeleteTrainingProgram()
   const deleteExercise = useDeleteExercise()
   const deleteLibrary = useDeleteExerciseLibraryConfig()
@@ -293,6 +307,8 @@ export default function AdminTrainingProgramsPage() {
                     programName,
                     (a, status) => updateAssignment.mutate({ id: a.id, data: { status } }),
                     (a) => deleteAssignment.mutate(a.id),
+                    (a) => generateSchedule.mutate(a.id),
+                    generateSchedule.isPending,
                     deleteAssignment.isPending ? (deleteAssignment.variables ?? null) : null
                   )}
                   data={assignments.data}

@@ -1,4 +1,5 @@
 import { get, post, put, del } from './client'
+import type { ExerciseCategory } from './exercises.api'
 
 /**
  * The real `/training-programs` resource (gym-os-api). A program is a
@@ -12,6 +13,8 @@ export type TrainingProgramDifficulty = 'Beginner' | 'Intermediate' | 'Advanced'
 export interface ProgramExerciseRecord {
   id: number
   exerciseId: number
+  exerciseName: string | null
+  exerciseCategory: ExerciseCategory | null
   sets: number | null
   reps: string | null
   restSeconds: number | null
@@ -24,6 +27,7 @@ export interface ProgramExerciseRecord {
 export interface ProgramDayRecord {
   id: number
   dayNumber: number
+  dayOfWeek: number | null
   dayName: string | null
   restDay: boolean
   orderIndex: number
@@ -60,6 +64,7 @@ export interface ProgramExerciseInput {
 
 export interface ProgramDayInput {
   dayNumber: number
+  dayOfWeek?: number
   dayName?: string
   restDay?: boolean
   orderIndex?: number

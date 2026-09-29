@@ -17,6 +17,7 @@ import { MemberDietsDialog } from './MemberDietsDialog'
 import { EditMemberPersonalInfoDialog } from './EditMemberPersonalInfoDialog'
 import { EditFitnessPreferencesDialog } from './EditFitnessPreferencesDialog'
 import { RecordMeasurementDialog } from './RecordMeasurementDialog'
+import { MemberWorkoutProgress } from './MemberWorkoutProgress'
 import { LogCheckInDialog } from './LogCheckInDialog'
 import { AIInsightsPanel } from './AIInsightsPanel'
 import { useBodyMeasurementsForMember } from '@/hooks/useBodyMeasurements'
@@ -372,6 +373,7 @@ export function MemberProfileTabs({
         </TabsContent>
 
         <TabsContent value="progress" className="mt-4">
+          <MemberWorkoutProgress memberId={memberId} canRecordAssessment={!readOnly || roleLabel === 'Assigned Member'} />
           <Card className="border-white/60 bg-white/65 shadow-lg backdrop-blur-md">
             <CardContent className="p-6">
               <div className="mb-4 flex items-center justify-between">
@@ -420,19 +422,6 @@ export function MemberProfileTabs({
               )}
             </CardContent>
           </Card>
-          {fitnessPrefs.data && (fitnessPrefs.data.strengthLevel || fitnessPrefs.data.cardioLevel || fitnessPrefs.data.overallFitnessLevel) && (
-            <Card className="border-white/60 bg-white/65 shadow-lg backdrop-blur-md">
-              <CardContent className="p-6">
-                <h3 className="text-sm font-semibold text-slate-900">Latest Fitness Assessment</h3>
-                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  <QuickStat label="Strength" value={fitnessPrefs.data.strengthLevel ?? '—'} />
-                  <QuickStat label="Cardio" value={fitnessPrefs.data.cardioLevel ?? '—'} />
-                  <QuickStat label="Mobility" value={fitnessPrefs.data.mobilityLevel ?? '—'} />
-                  <QuickStat label="Overall" value={fitnessPrefs.data.overallFitnessLevel ?? '—'} />
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </TabsContent>
 
         <TabsContent value="attendance" className="mt-4 space-y-4">
