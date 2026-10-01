@@ -88,6 +88,21 @@ export function ViewFoodLibraryDialog({ open, onClose, config, onEdit }: ViewFoo
                                   </li>
                                 ))}
                               </ul>
+                              {(group.foods.some((f) => f.altServingSize || f.preparationState || f.dietType)) && (
+                                <div className="mt-2 pt-2 border-t border-slate-100">
+                                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Details</p>
+                                  <ul className="space-y-0.5 text-xs text-slate-600">
+                                    {group.foods.filter((f) => f.altServingSize || f.preparationState || f.dietType).map((f) => (
+                                      <li key={`${f.name}-details`} className="flex flex-wrap gap-x-2 gap-y-0.5">
+                                        <span className="font-medium">{f.name}:</span>
+                                        {f.altServingSize && <span>Alt: {f.altServingSize}{f.altServingUnit}</span>}
+                                        {f.preparationState && <span>({f.preparationState})</span>}
+                                        {f.dietType && <span>{f.dietType}</span>}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}

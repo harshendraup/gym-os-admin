@@ -32,7 +32,7 @@ function countHighPriority(ctx: InsightContext): number {
  */
 export function AIInsightsPanel({ user, ctx }: AIInsightsPanelProps) {
   const [view, setView] = useState<View>('admin')
-  const [lang, setLang] = useState<AILang>('en')
+  const [lang, setLang] = useState<AILang>('hi')
   const highPriorityCount = countHighPriority(ctx)
   const t = AI_PANEL_STRINGS[lang]
   const fontClass = fontClassForLang(lang)

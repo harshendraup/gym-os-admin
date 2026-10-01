@@ -36,8 +36,13 @@ export function resolveConfiguredFood(
   if (!group || !food) return undefined
   return {
     name: food.name,
+    category: food.category,
     servingSize: food.servingSize,
     servingUnit: food.servingUnit,
+    altServingSize: food.altServingSize,
+    altServingUnit: food.altServingUnit,
+    preparationState: food.preparationState,
+    dietType: food.dietType,
     calories: food.calories,
     protein: food.protein,
     carbs: food.carbs,

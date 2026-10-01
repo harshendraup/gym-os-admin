@@ -26,8 +26,13 @@ export interface CatalogFoodCategory {
 
 export interface LibraryFood {
   name: string
+  category?: string
   servingSize: number
   servingUnit: string
+  altServingSize?: number
+  altServingUnit?: string
+  preparationState?: string
+  dietType?: string
   calories: number
   protein: number
   carbs: number

@@ -9,8 +9,13 @@ import { get, put, del } from './client'
  */
 export interface GymLibraryFood {
   name: string
+  category?: string
   servingSize: number
   servingUnit: string
+  altServingSize?: number
+  altServingUnit?: string
+  preparationState?: string
+  dietType?: string
   calories: number
   protein: number
   carbs: number

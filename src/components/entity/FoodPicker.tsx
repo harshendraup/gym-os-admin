@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { useFoods } from '@/hooks/useFoods'
 import type { FoodRecord } from '@/api/foods.api'
 import type { MealItemInput } from '@/api/diet-plans.api'
+import { SERVING_UNITS } from '@/components/constants'
 
 interface FoodPickerProps {
   onAdd: (item: MealItemInput) => void
@@ -155,7 +156,15 @@ export function FoodPicker({ onAdd, asAlternative }: FoodPickerProps) {
               <Input className="h-7 text-xs" placeholder="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
             </MiniField>
             <MiniField label="Unit">
-              <Input className="h-7 text-xs" placeholder="g / ml / pc" value={customUnit} onChange={(e) => setCustomUnit(e.target.value)} />
+              <select
+                className="h-7 text-xs rounded border border-slate-200 bg-white px-2 py-1"
+                value={customUnit}
+                onChange={(e) => setCustomUnit(e.target.value)}
+              >
+                {SERVING_UNITS.map((u) => (
+                  <option key={u} value={u}>{u}</option>
+                ))}
+              </select>
             </MiniField>
           </div>
           <div className="grid grid-cols-3 gap-2">

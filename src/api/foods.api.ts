@@ -8,6 +8,10 @@ export interface FoodRecord {
   category: string | null
   servingSize: string
   servingUnit: string
+  altServingSize: string | null
+  altServingUnit: string | null
+  preparationState: string | null
+  dietType: string | null
   calories: string
   protein: string
   carbs: string
@@ -25,6 +29,10 @@ export interface CreateFoodPayload {
   category?: string
   servingSize: number
   servingUnit: string
+  altServingSize?: number
+  altServingUnit?: string
+  preparationState?: string
+  dietType?: string
   calories: number
   protein: number
   carbs: number

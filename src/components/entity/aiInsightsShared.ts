@@ -29,8 +29,8 @@ export interface LanguageOption {
 }
 
 export const AI_LANGUAGES: LanguageOption[] = [
-  { code: 'en', label: 'English', nativeLabel: 'English', fontClass: 'font-sans' },
   { code: 'hi', label: 'Hindi', nativeLabel: 'हिंदी', fontClass: 'font-hindi' },
+  { code: 'en', label: 'English', nativeLabel: 'English', fontClass: 'font-sans' },
 ]
 
 export function fontClassForLang(lang: AILang): string {
