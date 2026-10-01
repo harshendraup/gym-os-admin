@@ -11,8 +11,8 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { useUpdateUser } from '@/hooks/useUsers'
 import type { ManagedUser } from '@/api/user-management.api'
+import { GENDERS } from '../constants'
 
-const GENDERS = ['Male', 'Female', 'Other']
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 
 const schema = z.object({

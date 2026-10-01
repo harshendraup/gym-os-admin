@@ -7,7 +7,17 @@ import type { ExerciseCategory } from './exercises.api'
  * member yet — see program-assignments.api.ts for the "assign this
  * program to a member" step.
  */
-export type TrainingProgramGoal = 'Weight Loss' | 'Muscle Gain' | 'General Fitness' | 'Rehab'
+export type TrainingProgramGoal =
+  | 'Weight & Fat Loss'
+  | 'Muscle Building'
+  | 'Body Toning & Recomposition'
+  | 'Strength & Power'
+  | 'General Health & Fitness'
+  | 'Endurance & Cardio'
+  | 'Mobility & Posture'
+  | 'Athletic & Sports Performance'
+  | 'Weight Maintenance'
+  | 'Rehab & Joint Recovery'
 export type TrainingProgramDifficulty = 'Beginner' | 'Intermediate' | 'Advanced'
 
 export interface ProgramExerciseRecord {

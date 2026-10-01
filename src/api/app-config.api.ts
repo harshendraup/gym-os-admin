@@ -1,4 +1,17 @@
 import { get, patch, put, del, apiClient } from './client'
+import {
+  CONFIG_SECTIONS,
+  WEEKDAYS_ABBR as WEEKDAYS,
+  QUICK_ACCESS_TARGETS,
+  FEATURE_FLAG_KEYS,
+  ILLUSTRATION_SLOTS,
+  MEDIA_KINDS,
+  type ConfigSection,
+  type Weekday,
+  type FeatureFlagKey,
+  type IllustrationSlot,
+  type MediaKind,
+} from '../components/constants'
 
 /**
  * The white-label configuration a super admin edits for one business —
@@ -14,44 +27,8 @@ import { get, patch, put, del, apiClient } from './client'
  * rejects them if they arrive through the payment section.
  */
 
-export const CONFIG_SECTIONS = [
-  'gym_profile',
-  'branding',
-  'theme',
-  'content',
-  'quick_access',
-  'capabilities',
-  'feature_flags',
-  'app_config',
-  'integrations',
-  'payment',
-  'signup_flow',
-] as const
-
-export type ConfigSection = (typeof CONFIG_SECTIONS)[number]
-
-export const WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const
-export type Weekday = (typeof WEEKDAYS)[number]
-
-export const QUICK_ACCESS_TARGETS = [
-  'Workout', 'Diet', 'Attendance', 'Trainer', 'Payments',
-  'Offers', 'Progress', 'Membership', 'Profile', 'Notifications',
-] as const
-
-export const FEATURE_FLAG_KEYS = [
-  'workout', 'diet', 'attendance', 'trainer', 'payment', 'offers',
-  'membership', 'progress', 'notifications', 'ecommerce', 'social', 'chat',
-] as const
-export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
-
-export const ILLUSTRATION_SLOTS = ['no_notifications', 'no_offers', 'no_sessions'] as const
-export type IllustrationSlot = (typeof ILLUSTRATION_SLOTS)[number]
-
-export const MEDIA_KINDS = [
-  'home_banner', 'promo_banner', 'workout_video', 'illustration',
-  'logo', 'app_icon', 'intro_slide', 'quick_access_icon',
-] as const
-export type MediaKind = (typeof MEDIA_KINDS)[number]
+// Re-export types for backward compatibility
+export type { ConfigSection, Weekday, FeatureFlagKey, IllustrationSlot, MediaKind }
 
 // ─── Section shapes ──────────────────────────────────────────────────────────
 

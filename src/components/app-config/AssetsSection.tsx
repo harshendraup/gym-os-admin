@@ -10,61 +10,22 @@ import {
 } from '@/hooks/useAppConfig'
 import {
   ILLUSTRATION_SLOTS,
+  IMAGE_ACCEPT,
+  VIDEO_ACCEPT,
+  ORDERED_GROUPS,
+  LIBRARY_KINDS,
+  KIND_LABELS,
+  SLOT_LABELS,
+  type MediaKind,
+  type LibraryKind,
+} from '../constants'
+import {
   type AppConfigMediaRecord,
   type AppConfigRecord,
-  type MediaKind,
 } from '@/api/app-config.api'
 import { SectionNotice } from './section-shell'
 import { MEDIA_SPECS } from './media-specs'
 import { AssetThumb, PickButton, StagedList, useStagedUploads } from './StagedUploader'
-
-const IMAGE_ACCEPT = 'image/png,image/jpeg,image/webp,image/svg+xml'
-const VIDEO_ACCEPT = 'video/mp4,video/quicktime,video/webm'
-
-const ORDERED_GROUPS: Array<{
-  kind: MediaKind
-  title: string
-  description: string
-  accept: string
-  limits: string
-}> = [
-  {
-    kind: 'home_banner',
-    title: 'Home banners',
-    description: 'The carousel on the app home screen, in this order.',
-    accept: IMAGE_ACCEPT,
-    limits: 'JPG, PNG, WEBP or SVG · up to 5MB',
-  },
-  {
-    kind: 'promo_banner',
-    title: 'Promo banners',
-    description: 'Offer and campaign artwork. Leave empty to hide the strip.',
-    accept: IMAGE_ACCEPT,
-    limits: 'JPG, PNG, WEBP or SVG · up to 5MB',
-  },
-  {
-    kind: 'workout_video',
-    title: 'Workout demo videos',
-    description: 'Demo clips played inside the workout screens.',
-    accept: VIDEO_ACCEPT,
-    limits: 'MP4, MOV or WEBM · up to 50MB',
-  },
-]
-
-const LIBRARY_KINDS: MediaKind[] = ['logo', 'app_icon', 'intro_slide', 'quick_access_icon']
-
-const KIND_LABELS: Record<string, string> = {
-  logo: 'Logo',
-  app_icon: 'App icon',
-  intro_slide: 'Onboarding slide',
-  quick_access_icon: 'Quick access icon',
-}
-
-const SLOT_LABELS: Record<string, string> = {
-  no_notifications: 'Empty notifications',
-  no_offers: 'Empty offers',
-  no_sessions: 'Empty sessions',
-}
 
 /**
  * Uploaded app media.
@@ -364,7 +325,7 @@ function LibraryGroup({
   media: AppConfigMediaRecord[]
 }) {
   const remove = useDeleteAppConfigMedia(businessId)
-  const library = media.filter((item) => LIBRARY_KINDS.includes(item.kind))
+  const library = media.filter((item) => LIBRARY_KINDS.includes(item.kind as LibraryKind))
 
   return (
     <GroupShell

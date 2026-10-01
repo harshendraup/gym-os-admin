@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { exercisesApi, type CreateExercisePayload, type UpdateExercisePayload } from '@/api/exercises.api'
+import { exercisesApi, type CreateExercisePayload, type UpdateExercisePayload, type ExerciseFilters } from '@/api/exercises.api'
 import { getApiErrorMessage } from '@/lib/api-error'
 import { toast } from 'sonner'
 
@@ -7,11 +7,18 @@ export const exerciseKeys = {
   all: () => ['exercises'] as const,
 }
 
-/** The backend already scopes this to the caller's own business. */
-export function useExercises() {
+/**
+ * The backend already scopes this to the caller's own business. `filters`
+ * is optional and server-applied — omitting it (the Program Builder's
+ * usage) keeps fetching and caching the full business library exactly as
+ * before; passing it (the Exercise Library tab) narrows the result set.
+ * Filtered and unfiltered results share the base `exercises` cache tag so
+ * a create/update/delete anywhere invalidates both.
+ */
+export function useExercises(filters?: ExerciseFilters) {
   return useQuery({
-    queryKey: exerciseKeys.all(),
-    queryFn: () => exercisesApi.list(),
+    queryKey: [...exerciseKeys.all(), filters ?? {}],
+    queryFn: () => exercisesApi.list(filters),
     staleTime: 30_000,
   })
 }

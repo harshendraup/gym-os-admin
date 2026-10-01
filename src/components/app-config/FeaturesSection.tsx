@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { SectionNotice, SectionShell, ToggleRow, useSectionDraft } from './section-shell'
 import { useResetAppConfigSection, useSaveAppConfigSection } from '@/hooks/useAppConfig'
+import { FEATURE_FLAG_KEYS } from '../constants'
 import {
-  FEATURE_FLAG_KEYS,
   type AppConfigRecord,
   type CapabilitiesSection,
   type FeatureFlagKey,

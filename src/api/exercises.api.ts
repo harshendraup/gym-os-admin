@@ -1,4 +1,5 @@
 import { get, post, put, del } from './client'
+import type { FitnessGoal, EquipmentType, TrackingMetric } from '@/components/constants'
 
 /**
  * The real `/exercises` resource (gym-os-api) — a business's own reusable
@@ -17,8 +18,13 @@ export interface ExerciseRecord {
   name: string
   category: ExerciseCategory
   muscleGroup: MuscleGroup | null
+  secondaryMuscleGroups: MuscleGroup[] | null
   difficultyLevel: ExerciseDifficulty | null
   equipment: string | null
+  equipmentTags: EquipmentType[] | null
+  trackingMetric: TrackingMetric | null
+  isActive: boolean
+  goals: FitnessGoal[]
   videoUrl: string | null
   instructions: string | null
   createdAt: string
@@ -29,16 +35,42 @@ export interface CreateExercisePayload {
   name: string
   category: ExerciseCategory
   muscleGroup?: MuscleGroup
+  secondaryMuscleGroups?: MuscleGroup[]
   difficultyLevel?: ExerciseDifficulty
   equipment?: string
+  equipmentTags?: EquipmentType[]
+  trackingMetric?: TrackingMetric
+  isActive?: boolean
+  goals?: FitnessGoal[]
   videoUrl?: string
   instructions?: string
 }
 
 export type UpdateExercisePayload = Partial<CreateExercisePayload>
 
+export interface ExerciseFilters {
+  search?: string
+  category?: ExerciseCategory
+  muscleGroup?: MuscleGroup
+  difficultyLevel?: ExerciseDifficulty
+  equipment?: EquipmentType
+  goal?: FitnessGoal
+  isActive?: boolean
+}
+
+function toQueryString(filters?: ExerciseFilters) {
+  if (!filters) return ''
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(filters)) {
+    if (value === undefined || value === '') continue
+    params.set(key, String(value))
+  }
+  const qs = params.toString()
+  return qs ? `?${qs}` : ''
+}
+
 export const exercisesApi = {
-  list: () => get<ExerciseRecord[]>('/exercises'),
+  list: (filters?: ExerciseFilters) => get<ExerciseRecord[]>(`/exercises${toQueryString(filters)}`),
 
   get: (id: number) => get<ExerciseRecord>(`/exercises/${id}`),
 

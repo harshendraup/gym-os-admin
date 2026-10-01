@@ -23,11 +23,9 @@ import {
   getConfiguredCategoryForGroup, resolveConfiguredExercise,
 } from '@/data/gymExerciseLibrary'
 import type { GymLibraryCategory } from '@/api/exercise-library-config.api'
-
-const MUSCLE_GROUPS: MuscleGroup[] = [
-  'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Full Body', 'Cardio',
-]
-const DIFFICULTIES: ExerciseDifficulty[] = ['Beginner', 'Intermediate', 'Advanced']
+import {
+  MUSCLE_GROUPS, EXERCISE_DIFFICULTY as DIFFICULTIES, FITNESS_GOALS, EQUIPMENT_TYPES, TRACKING_METRICS, TRACKING_METRIC_LABELS,
+} from '../constants'
 
 const schema = z.object({
   name: z.string().min(1, 'Exercise name is required'),
@@ -61,6 +59,14 @@ export function CreateExerciseDialog({ open, onClose, onCreated, libraryCatalog 
   })
   const muscleGroup = watch('muscleGroup')
   const difficultyLevel = watch('difficultyLevel')
+  const [goals, setGoals] = useState<string[]>([])
+  const [equipmentTags, setEquipmentTags] = useState<string[]>([])
+  const [secondaryMuscleGroups, setSecondaryMuscleGroups] = useState<string[]>([])
+  const [trackingMetric, setTrackingMetric] = useState<string>('weight_reps')
+  const [isActive, setIsActive] = useState(true)
+
+  const toggleIn = (list: string[], value: string, setList: (v: string[]) => void) =>
+    setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value])
 
   // Cascading library picker: Category -> Group -> Equipment -> Exercise.
   // Each level's options are derived from exercisesData.json, never hardcoded.
@@ -132,6 +138,11 @@ export function CreateExerciseDialog({ open, onClose, onCreated, libraryCatalog 
         instructions: '',
       })
       resetPicker()
+      setGoals([])
+      setEquipmentTags([])
+      setSecondaryMuscleGroups([])
+      setTrackingMetric('weight_reps')
+      setIsActive(true)
     }
   }, [open, reset])
 
@@ -141,8 +152,13 @@ export function CreateExerciseDialog({ open, onClose, onCreated, libraryCatalog 
         name: values.name,
         category: values.category as ExerciseCategory,
         muscleGroup: (values.muscleGroup || undefined) as MuscleGroup | undefined,
+        secondaryMuscleGroups: secondaryMuscleGroups as MuscleGroup[],
         difficultyLevel: (values.difficultyLevel || undefined) as ExerciseDifficulty | undefined,
         equipment: values.equipment || undefined,
+        equipmentTags: equipmentTags as any,
+        trackingMetric: trackingMetric as any,
+        isActive,
+        goals: goals as any,
         videoUrl: values.videoUrl || undefined,
         instructions: values.instructions || undefined,
       },
@@ -266,6 +282,63 @@ export function CreateExerciseDialog({ open, onClose, onCreated, libraryCatalog 
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Tracking Metric</Label>
+              <Select value={trackingMetric} onValueChange={setTrackingMetric}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {TRACKING_METRICS.map((m) => (
+                    <SelectItem key={m} value={m}>{TRACKING_METRIC_LABELS[m]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Status</Label>
+              <label className="flex h-9 items-center gap-2 text-sm">
+                <input type="checkbox" className="h-3.5 w-3.5 rounded border-input" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
+                Active (selectable in Program Builder)
+              </label>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Secondary Muscle Groups</Label>
+            <div className="flex flex-wrap gap-x-3 gap-y-1.5">
+              {MUSCLE_GROUPS.filter((m) => m !== muscleGroup).map((m) => (
+                <label key={m} className="flex items-center gap-1.5 text-xs">
+                  <input type="checkbox" className="h-3.5 w-3.5 rounded border-input" checked={secondaryMuscleGroups.includes(m)} onChange={() => toggleIn(secondaryMuscleGroups, m, setSecondaryMuscleGroups)} />
+                  {m}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Equipment (structured, select all that apply)</Label>
+            <div className="flex flex-wrap gap-x-3 gap-y-1.5">
+              {EQUIPMENT_TYPES.map((eq) => (
+                <label key={eq} className="flex items-center gap-1.5 text-xs">
+                  <input type="checkbox" className="h-3.5 w-3.5 rounded border-input" checked={equipmentTags.includes(eq)} onChange={() => toggleIn(equipmentTags, eq, setEquipmentTags)} />
+                  {eq}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Fitness Goals (select all that apply)</Label>
+            <div className="flex flex-wrap gap-x-3 gap-y-1.5">
+              {FITNESS_GOALS.map((g) => (
+                <label key={g} className="flex items-center gap-1.5 text-xs">
+                  <input type="checkbox" className="h-3.5 w-3.5 rounded border-input" checked={goals.includes(g)} onChange={() => toggleIn(goals, g, setGoals)} />
+                  {g}
+                </label>
+              ))}
             </div>
           </div>
 

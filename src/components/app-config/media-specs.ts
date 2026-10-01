@@ -1,4 +1,4 @@
-import type { MediaKind } from '@/api/app-config.api'
+import type { MediaKind } from '../constants'
 import type { ImageSpec } from '@/lib/image-crop'
 
 /**

@@ -3,8 +3,7 @@ import { get, put } from './client'
 export type FitnessLevel = 'Beginner' | 'Intermediate' | 'Advanced'
 export type GymExperienceLevel = 'Less than 6 months' | '6-12 months' | '1-3 years' | '3+ years'
 export type FitnessGoal =
-  | 'Weight Loss' | 'Fat Loss' | 'Muscle Gain' | 'Strength' | 'Bodybuilding'
-  | 'General Fitness' | 'Endurance' | 'Mobility/Flexibility' | 'Sports Performance' | 'Weight Maintenance'
+  'Weight & Fat Loss' | 'Muscle Building' | 'Body Toning & Recomposition' | 'Strength & Power' | 'General Health & Fitness' | 'Endurance & Cardio' | 'Mobility & Posture' | 'Athletic & Sports Performance' | 'Weight Maintenance' | 'Rehab & Joint Recovery'
 
 export interface MemberFitnessPreferenceRecord {
   id: number

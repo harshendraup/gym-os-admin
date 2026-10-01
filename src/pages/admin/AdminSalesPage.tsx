@@ -14,9 +14,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { useCreateSalesLead, useDeleteSalesLead, useSalesLeads, useUpdateAnySalesLead, useUpdateSalesLead } from '@/hooks/useSalesLeads'
 import type { SalesLeadRecord, SalesLeadSource, SalesLeadStatus } from '@/api/sales-leads.api'
 import { getRandomPageBackground } from '@/data/pageBackgrounds'
-
-const STATUSES: SalesLeadStatus[] = ['New', 'Contacted', 'Qualified', 'Visit Booked', 'Won', 'Lost']
-const SOURCES: SalesLeadSource[] = ['Instagram', 'WhatsApp', 'Website', 'Referral', 'Walk-in', 'Other']
+import { SALES_LEAD_STATUSES as STATUSES, SALES_LEAD_SOURCES as SOURCES } from '@/components/constants'
 const STATUS_STYLE: Record<SalesLeadStatus, 'default' | 'secondary' | 'success' | 'warning' | 'destructive'> = {
   New: 'secondary', Contacted: 'default', Qualified: 'warning', 'Visit Booked': 'warning', Won: 'success', Lost: 'destructive',
 }

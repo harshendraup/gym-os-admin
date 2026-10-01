@@ -19,10 +19,7 @@ import type {
 } from '@/api/training-programs.api'
 import type { ExerciseCategory } from '@/api/exercises.api'
 import type { GymLibraryCategory } from '@/api/exercise-library-config.api'
-
-const GOALS: TrainingProgramGoal[] = ['Weight Loss', 'Muscle Gain', 'General Fitness', 'Rehab']
-const DIFFICULTIES: TrainingProgramDifficulty[] = ['Beginner', 'Intermediate', 'Advanced']
-const CATEGORY_ORDER: ExerciseCategory[] = ['Strength', 'Cardio', 'Mobility', 'Flexibility', 'Balance']
+import { FITNESS_GOALS, DIFFICULTY_LEVELS as DIFFICULTIES, EXERCISE_CATEGORIES as CATEGORY_ORDER, EQUIPMENT_TYPES, WEEKDAYS } from '../constants'
 
 interface ExerciseDraft {
   key: string
@@ -53,12 +50,6 @@ function emptyExercise(): ExerciseDraft {
 function emptyDay(dayNumber: number): DayDraft {
   return { key: nextKey(), dayName: `Day ${dayNumber}`, dayOfWeek: '', restDay: false, exercises: [emptyExercise()] }
 }
-
-const WEEKDAYS = [
-  { value: 1, label: 'Monday' }, { value: 2, label: 'Tuesday' }, { value: 3, label: 'Wednesday' },
-  { value: 4, label: 'Thursday' }, { value: 5, label: 'Friday' }, { value: 6, label: 'Saturday' },
-  { value: 7, label: 'Sunday' },
-]
 
 interface CreateTrainingProgramDialogProps {
   open: boolean
@@ -94,7 +85,7 @@ export function CreateTrainingProgramDialog({
   const [branchId, setBranchId] = useState('')
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [goal, setGoal] = useState<TrainingProgramGoal>('General Fitness')
+  const [goal, setGoal] = useState<TrainingProgramGoal>('General Health & Fitness')
   const [durationWeeks, setDurationWeeks] = useState('')
   const [difficultyLevel, setDifficultyLevel] = useState<TrainingProgramDifficulty>('Beginner')
   const [days, setDays] = useState<DayDraft[]>([emptyDay(1)])
@@ -105,7 +96,7 @@ export function CreateTrainingProgramDialog({
       setBranchId(fixedBranchId ? String(fixedBranchId) : '')
       setName('')
       setDescription('')
-      setGoal('General Fitness')
+      setGoal('General Health & Fitness')
       setDurationWeeks('')
       setDifficultyLevel('Beginner')
       setDays([emptyDay(1)])
@@ -114,11 +105,26 @@ export function CreateTrainingProgramDialog({
     }
   }, [open, fixedBranchId])
 
+  // Goal/equipment/difficulty filters narrow the picker to help the trainer
+  // find relevant exercises — they never hard-block a selection, and reset
+  // to "Any" always still shows the full active library.
+  const [pickerGoalFilter, setPickerGoalFilter] = useState('')
+  const [pickerEquipmentFilter, setPickerEquipmentFilter] = useState('')
+  const [pickerDifficultyFilter, setPickerDifficultyFilter] = useState('')
+
   // Grouped by category so a gym with a large library can scan by type
-  // instead of hunting through one long alphabetical list.
+  // instead of hunting through one long alphabetical list. Inactive
+  // exercises are never selectable here, regardless of filters.
   const groupedExercises = useMemo(() => {
+    const filtered = exercises.filter((ex) => {
+      if (ex.isActive === false) return false
+      if (pickerGoalFilter && !ex.goals?.includes(pickerGoalFilter as any)) return false
+      if (pickerEquipmentFilter && !(ex.equipmentTags ?? []).includes(pickerEquipmentFilter as any)) return false
+      if (pickerDifficultyFilter && ex.difficultyLevel !== pickerDifficultyFilter) return false
+      return true
+    })
     const byCategory = new Map<ExerciseCategory, typeof exercises>()
-    for (const ex of exercises) {
+    for (const ex of filtered) {
       const list = byCategory.get(ex.category) ?? []
       list.push(ex)
       byCategory.set(ex.category, list)
@@ -126,7 +132,7 @@ export function CreateTrainingProgramDialog({
     return CATEGORY_ORDER.map((category) => ({ category, items: byCategory.get(category) ?? [] })).filter(
       (g) => g.items.length > 0
     )
-  }, [exercises])
+  }, [exercises, pickerGoalFilter, pickerEquipmentFilter, pickerDifficultyFilter])
 
   const updateDay = (key: string, patch: Partial<DayDraft>) =>
     setDays((prev) => prev.map((d) => (d.key === key ? { ...d, ...patch } : d)))
@@ -259,9 +265,9 @@ export function CreateTrainingProgramDialog({
               <div className="space-y-1.5">
                 <Label>Goal</Label>
                 <Select value={goal} onValueChange={(v) => setGoal(v as TrainingProgramGoal)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Select Goal"/></SelectTrigger>
                   <SelectContent>
-                    {GOALS.map((g) => (
+                    {FITNESS_GOALS.map((g) => (
                       <SelectItem key={g} value={g}>{g}</SelectItem>
                     ))}
                   </SelectContent>
@@ -295,6 +301,43 @@ export function CreateTrainingProgramDialog({
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   Add each training day — e.g. Push Day, Pull Day, Leg Day — and the exercises members should do on it.
                 </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 rounded-md border border-dashed border-input p-2.5">
+                <span className="text-xs font-medium text-muted-foreground">Exercise picker filters:</span>
+                <Select value={pickerGoalFilter || 'any'} onValueChange={(v) => setPickerGoalFilter(v === 'any' ? '' : v)}>
+                  <SelectTrigger className="h-7 w-40 text-xs"><SelectValue placeholder="Goal" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any goal</SelectItem>
+                    <SelectItem value={goal}>Program goal ({goal})</SelectItem>
+                    {FITNESS_GOALS.filter((g) => g !== goal).map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select value={pickerEquipmentFilter || 'any'} onValueChange={(v) => setPickerEquipmentFilter(v === 'any' ? '' : v)}>
+                  <SelectTrigger className="h-7 w-36 text-xs"><SelectValue placeholder="Equipment" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any equipment</SelectItem>
+                    {EQUIPMENT_TYPES.map((eq) => <SelectItem key={eq} value={eq}>{eq}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select value={pickerDifficultyFilter || 'any'} onValueChange={(v) => setPickerDifficultyFilter(v === 'any' ? '' : v)}>
+                  <SelectTrigger className="h-7 w-32 text-xs"><SelectValue placeholder="Difficulty" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any difficulty</SelectItem>
+                    {DIFFICULTIES.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                {(pickerGoalFilter || pickerEquipmentFilter || pickerDifficultyFilter) && (
+                  <Button
+                    type="button" size="sm" variant="ghost" className="h-7 text-xs text-muted-foreground"
+                    onClick={() => { setPickerGoalFilter(''); setPickerEquipmentFilter(''); setPickerDifficultyFilter('') }}
+                  >
+                    Clear filters
+                  </Button>
+                )}
+                <span className="text-xs text-muted-foreground">
+                  Only active exercises are shown — filters narrow the list, they never block a manual pick.
+                </span>
               </div>
 
               {days.map((day, dayIndex) => (

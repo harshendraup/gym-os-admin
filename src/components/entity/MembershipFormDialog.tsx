@@ -14,10 +14,7 @@ import type {
   MembershipRecord, MembershipPayload, MembershipDurationUnit, MembershipDiscountType, MembershipStatus,
 } from '@/api/memberships.api'
 import type { BranchRecord } from '@/api/branches.api'
-
-const DURATION_UNITS: MembershipDurationUnit[] = ['days', 'weeks', 'months', 'years']
-const DISCOUNT_TYPES: MembershipDiscountType[] = ['flat', 'percentage']
-const STATUSES: MembershipStatus[] = ['draft', 'active', 'inactive', 'archived']
+import { DURATION_UNITS, DISCOUNT_TYPES, MEMBERSHIP_STATUSES as STATUSES } from '../constants'
 
 interface FormState {
   branchId: string

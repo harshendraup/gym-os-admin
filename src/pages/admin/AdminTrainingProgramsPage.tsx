@@ -28,6 +28,7 @@ import type { ProgramAssignmentRecord, ProgramAssignmentStatus } from '@/api/pro
 import type { TrainingProgramRecord } from '@/api/training-programs.api'
 import type { ExerciseRecord } from '@/api/exercises.api'
 import type { ManagedUser } from '@/api/user-management.api'
+import { EXERCISE_CATEGORIES, FITNESS_GOALS, EQUIPMENT_TYPES, EXERCISE_DIFFICULTY, MUSCLE_GROUPS } from '@/components/constants'
 
 const STATUSES: ProgramAssignmentStatus[] = ['active', 'paused', 'completed', 'cancelled']
 
@@ -121,6 +122,9 @@ function exerciseColumns(
     { header: 'Category', cell: ({ row }) => row.original.category },
     { header: 'Muscle Group', cell: ({ row }) => row.original.muscleGroup ?? '—' },
     { header: 'Difficulty', cell: ({ row }) => row.original.difficultyLevel ?? '—' },
+    { header: 'Equipment', cell: ({ row }) => (row.original.equipmentTags?.length ? row.original.equipmentTags.join(', ') : row.original.equipment ?? '—') },
+    { header: 'Goals', cell: ({ row }) => (row.original.goals?.length ? row.original.goals.join(', ') : '—') },
+    { header: 'Status', cell: ({ row }) => (row.original.isActive ? 'Active' : 'Inactive') },
     {
       id: 'actions',
       header: '',
@@ -160,6 +164,12 @@ export default function AdminTrainingProgramsPage() {
   const [configureLibraryOpen, setConfigureLibraryOpen] = useState(false)
   const [viewLibraryOpen, setViewLibraryOpen] = useState(false)
   const [exerciseSearch, setExerciseSearch] = useState('')
+  const [exerciseCategoryFilter, setExerciseCategoryFilter] = useState('')
+  const [exerciseGoalFilter, setExerciseGoalFilter] = useState('')
+  const [exerciseEquipmentFilter, setExerciseEquipmentFilter] = useState('')
+  const [exerciseDifficultyFilter, setExerciseDifficultyFilter] = useState('')
+  const [exerciseMuscleFilter, setExerciseMuscleFilter] = useState('')
+  const [exerciseActiveFilter, setExerciseActiveFilter] = useState('')
 
   const memberName = (id: number) => {
     const u = findUser(members, id)
@@ -177,11 +187,20 @@ export default function AdminTrainingProgramsPage() {
 
   const filteredExercises = useMemo(() => {
     const q = exerciseSearch.trim().toLowerCase()
-    if (!q) return exercises.data
-    return exercises.data?.filter(
-      (e) => e.name.toLowerCase().includes(q) || e.category.toLowerCase().includes(q) || e.muscleGroup?.toLowerCase().includes(q)
-    )
-  }, [exercises.data, exerciseSearch])
+    return exercises.data?.filter((e) => {
+      if (q && !(e.name.toLowerCase().includes(q) || e.category.toLowerCase().includes(q) || e.muscleGroup?.toLowerCase().includes(q))) return false
+      if (exerciseCategoryFilter && e.category !== exerciseCategoryFilter) return false
+      if (exerciseGoalFilter && !e.goals?.includes(exerciseGoalFilter as any)) return false
+      if (exerciseEquipmentFilter && !(e.equipmentTags ?? []).includes(exerciseEquipmentFilter as any)) return false
+      if (exerciseDifficultyFilter && e.difficultyLevel !== exerciseDifficultyFilter) return false
+      if (exerciseMuscleFilter && e.muscleGroup !== exerciseMuscleFilter && !(e.secondaryMuscleGroups ?? []).includes(exerciseMuscleFilter as any)) return false
+      if (exerciseActiveFilter && String(e.isActive) !== exerciseActiveFilter) return false
+      return true
+    })
+  }, [
+    exercises.data, exerciseSearch, exerciseCategoryFilter, exerciseGoalFilter,
+    exerciseEquipmentFilter, exerciseDifficultyFilter, exerciseMuscleFilter, exerciseActiveFilter,
+  ])
 
   return (
     <div className="relative -m-6 flex h-[calc(100%+3rem)] flex-col overflow-hidden lg:-m-8 lg:h-[calc(100%+4rem)]">
@@ -246,6 +265,49 @@ export default function AdminTrainingProgramsPage() {
                         className="h-8 pl-8 text-xs"
                       />
                     </div>
+                    <Select value={exerciseCategoryFilter || 'any'} onValueChange={(v) => setExerciseCategoryFilter(v === 'any' ? '' : v)}>
+                      <SelectTrigger className="h-8 w-32 text-xs"><SelectValue placeholder="Category" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="any">Any category</SelectItem>
+                        {EXERCISE_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Select value={exerciseGoalFilter || 'any'} onValueChange={(v) => setExerciseGoalFilter(v === 'any' ? '' : v)}>
+                      <SelectTrigger className="h-8 w-40 text-xs"><SelectValue placeholder="Goal" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="any">Any goal</SelectItem>
+                        {FITNESS_GOALS.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Select value={exerciseEquipmentFilter || 'any'} onValueChange={(v) => setExerciseEquipmentFilter(v === 'any' ? '' : v)}>
+                      <SelectTrigger className="h-8 w-36 text-xs"><SelectValue placeholder="Equipment" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="any">Any equipment</SelectItem>
+                        {EQUIPMENT_TYPES.map((eq) => <SelectItem key={eq} value={eq}>{eq}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Select value={exerciseDifficultyFilter || 'any'} onValueChange={(v) => setExerciseDifficultyFilter(v === 'any' ? '' : v)}>
+                      <SelectTrigger className="h-8 w-32 text-xs"><SelectValue placeholder="Difficulty" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="any">Any difficulty</SelectItem>
+                        {EXERCISE_DIFFICULTY.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Select value={exerciseMuscleFilter || 'any'} onValueChange={(v) => setExerciseMuscleFilter(v === 'any' ? '' : v)}>
+                      <SelectTrigger className="h-8 w-32 text-xs"><SelectValue placeholder="Muscle" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="any">Any muscle</SelectItem>
+                        {MUSCLE_GROUPS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Select value={exerciseActiveFilter || 'any'} onValueChange={(v) => setExerciseActiveFilter(v === 'any' ? '' : v)}>
+                      <SelectTrigger className="h-8 w-28 text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="any">Any status</SelectItem>
+                        <SelectItem value="true">Active</SelectItem>
+                        <SelectItem value="false">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <Button size="sm" variant="ghost" className="text-muted-foreground" onClick={() => setViewLibraryOpen(true)}>
                       View Library
                     </Button>

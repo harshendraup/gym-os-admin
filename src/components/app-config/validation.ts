@@ -6,6 +6,7 @@ import {
   type QuickAccessTile,
   type ThemeSection,
 } from '@/api/app-config.api'
+import { DAY_LABELS } from '../constants'
 
 /**
  * Client-side mirrors of the rules the API enforces.
@@ -20,11 +21,6 @@ const SEMVER = /^\d+\.\d+\.\d+$/
 const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/
 
 export const isHex = (value: string | null | undefined) => HEX.test(value ?? '')
-
-const DAY_LABELS: Record<string, string> = {
-  mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday',
-  fri: 'Friday', sat: 'Saturday', sun: 'Sunday',
-}
 
 export function validateTheme(theme: ThemeSection): string[] {
   const tokens: Array<[keyof ThemeSection, string]> = [

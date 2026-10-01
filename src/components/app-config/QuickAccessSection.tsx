@@ -13,6 +13,8 @@ import { validateQuickAccess } from './validation'
 import {
   FEATURE_FLAG_KEYS,
   QUICK_ACCESS_TARGETS,
+} from '../constants'
+import {
   type AppConfigRecord,
   type QuickAccessTile,
 } from '@/api/app-config.api'

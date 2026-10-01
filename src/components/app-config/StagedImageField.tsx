@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { isVector, loadImage, renderCrop, toUploadFile } from '@/lib/image-crop'
 import { MEDIA_SPECS } from './media-specs'
-import type { MediaKind } from '@/api/app-config.api'
+import type { MediaKind } from '../constants'
 
 const ACCEPT = 'image/png,image/jpeg,image/webp,image/svg+xml'
 

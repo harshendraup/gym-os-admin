@@ -16,20 +16,26 @@ const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {
   'Very Active': 1.9,
 }
 
-// Fat Loss/Weight Loss both map to a cut; Muscle Gain to a surplus;
-// Fitness (general maintenance) gets no adjustment.
+// Loss goals map to a cut; Muscle Building to a surplus; Body Recomposition
+// a slight cut; maintenance/performance/aging goals get no adjustment.
 const GOAL_CALORIE_ADJUSTMENT: Record<NutritionGoal, number> = {
-  'Weight Loss': -0.2,
-  'Fat Loss': -0.2,
-  'Muscle Gain': 0.12,
-  Fitness: 0,
+  'Weight & Fat Loss': -0.2,
+  'Muscle Building': 0.12,
+  'Body Recomposition': -0.1,
+  'Weight Maintenance': 0,
+  'General Health & Fitness': 0,
+  'Sports Performance': 0.05,
+  'Healthy Aging': 0,
 }
 
 const GOAL_PROTEIN_PER_KG: Record<NutritionGoal, number> = {
-  'Weight Loss': 2.0,
-  'Fat Loss': 2.0,
-  'Muscle Gain': 1.8,
-  Fitness: 1.4,
+  'Weight & Fat Loss': 2.0,
+  'Muscle Building': 1.8,
+  'Body Recomposition': 1.8,
+  'Weight Maintenance': 1.6,
+  'General Health & Fitness': 1.4,
+  'Sports Performance': 1.8,
+  'Healthy Aging': 1.6,
 }
 
 const FAT_SHARE_OF_CALORIES = 0.25

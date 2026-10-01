@@ -18,9 +18,7 @@ import { categoryIcon } from '@/data/exerciseLibraryIcons'
 import { useSaveExerciseLibraryConfig } from '@/hooks/useExerciseLibraryConfig'
 import type { ExerciseLibraryConfigRecord, GymLibraryCategory, GymLibraryGroup } from '@/api/exercise-library-config.api'
 import type { ExerciseCategory, MuscleGroup } from '@/api/exercises.api'
-
-const CATEGORIES: ExerciseCategory[] = ['Strength', 'Cardio', 'Mobility', 'Flexibility', 'Balance']
-const MUSCLE_GROUPS: MuscleGroup[] = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Full Body', 'Cardio']
+import { EXERCISE_CATEGORIES as CATEGORIES, MUSCLE_GROUPS } from '../constants'
 
 function newId(prefix: string) {
   return `${prefix}-${crypto.randomUUID()}`
@@ -199,7 +197,7 @@ export function ConfigureExerciseLibraryDialog({ open, onClose, existingConfig }
 
   const totalGroups = categories.reduce((sum, c) => sum + c.groups.length, 0)
   const customCategories = categories.filter((c) => c.source === 'custom')
-
+// console.log("getCatalogCategories", getCatalogCategories())
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -223,6 +221,7 @@ export function ConfigureExerciseLibraryDialog({ open, onClose, existingConfig }
                 const customGroupsHere = findCategory(cat.id)?.groups.filter((g) => g.source === 'custom') ?? []
                 const includedCount = findCategory(cat.id)?.groups.length ?? 0
                 const Icon = categoryIcon(cat.id)
+                console.log("category", { cat, groups, customGroupsHere, includedCount })
                 return (
                   <div key={cat.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                     <button

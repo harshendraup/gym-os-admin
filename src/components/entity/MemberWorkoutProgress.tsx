@@ -24,8 +24,7 @@ import type {
   WorkoutSessionRecord,
   WorkoutSessionStatus,
 } from '@/api/workout-tracking.api'
-
-const LEVELS: AssessmentLevel[] = ['Beginner', 'Intermediate', 'Advanced']
+import { FITNESS_LEVELS as LEVELS } from '../constants'
 
 function statusLabel(status: WorkoutSessionStatus) {
   return status.replace(/_/g, ' ')

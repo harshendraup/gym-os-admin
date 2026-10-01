@@ -1,7 +1,14 @@
 import { get, post, put, del } from './client'
 import type { DietType } from './nutrition-assessments.api'
 
-export type DietPlanGoal = 'Weight Loss' | 'Muscle Gain' | 'Fat Loss' | 'Fitness'
+export type DietPlanGoal =
+  | 'Weight & Fat Loss'
+  | 'Muscle Building'
+  | 'Body Recomposition'
+  | 'Weight Maintenance'
+  | 'General Health & Fitness'
+  | 'Sports Performance'
+  | 'Healthy Aging'
 export type DietPlanStatus = 'Draft' | 'Active' | 'Archived'
 export type DietPlanType = 'Template' | 'Custom'
 

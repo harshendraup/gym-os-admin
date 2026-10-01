@@ -5,10 +5,13 @@ import { cn } from '@/lib/utils'
 import type { DietPlanRecord, DietPlanGoal } from '@/api/diet-plans.api'
 
 const GOAL_ACCENT: Record<DietPlanGoal, { stripe: string; text: string; chipBg: string }> = {
-  'Weight Loss': { stripe: 'from-emerald-400 to-green-500', text: 'text-emerald-600', chipBg: 'bg-emerald-50' },
-  'Muscle Gain': { stripe: 'from-sky-400 to-blue-500', text: 'text-blue-600', chipBg: 'bg-blue-50' },
-  'Fat Loss': { stripe: 'from-orange-400 to-amber-500', text: 'text-orange-600', chipBg: 'bg-orange-50' },
-  'Fitness': { stripe: 'from-primary to-violet-500', text: 'text-primary', chipBg: 'bg-primary/5' },
+  'Weight & Fat Loss': { stripe: 'from-emerald-400 to-green-500', text: 'text-emerald-600', chipBg: 'bg-emerald-50' },
+  'Muscle Building': { stripe: 'from-sky-400 to-blue-500', text: 'text-blue-600', chipBg: 'bg-blue-50' },
+  'Body Recomposition': { stripe: 'from-orange-400 to-amber-500', text: 'text-orange-600', chipBg: 'bg-orange-50' },
+  'Weight Maintenance': { stripe: 'from-teal-400 to-cyan-500', text: 'text-teal-600', chipBg: 'bg-teal-50' },
+  'General Health & Fitness': { stripe: 'from-primary to-violet-500', text: 'text-primary', chipBg: 'bg-primary/5' },
+  'Sports Performance': { stripe: 'from-rose-400 to-pink-500', text: 'text-rose-600', chipBg: 'bg-rose-50' },
+  'Healthy Aging': { stripe: 'from-indigo-400 to-purple-500', text: 'text-indigo-600', chipBg: 'bg-indigo-50' },
 }
 
 const STATUS_VARIANT = { Draft: 'secondary', Active: 'success', Archived: 'outline' } as const

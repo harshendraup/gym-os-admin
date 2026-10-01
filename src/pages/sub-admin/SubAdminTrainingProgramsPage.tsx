@@ -21,6 +21,7 @@ import type { ProgramAssignmentStatus } from '@/api/program-assignments.api'
 import type { ManagedUser } from '@/api/user-management.api'
 import { T, mono } from '@/components/scoreboard/tokens'
 import { Hero, ScoreCard, ScoreboardCta, ScoreboardIconButton, RowCardList, RowCard } from '@/components/scoreboard/primitives'
+import { EXERCISE_CATEGORIES, FITNESS_GOALS, EQUIPMENT_TYPES, EXERCISE_DIFFICULTY, MUSCLE_GROUPS } from '@/components/constants'
 
 const HERO_IMAGE: string | null = null
 
@@ -61,6 +62,12 @@ export default function SubAdminTrainingProgramsPage() {
   const [configureLibraryOpen, setConfigureLibraryOpen] = useState(false)
   const [viewLibraryOpen, setViewLibraryOpen] = useState(false)
   const [exerciseSearch, setExerciseSearch] = useState('')
+  const [exerciseCategoryFilter, setExerciseCategoryFilter] = useState('')
+  const [exerciseGoalFilter, setExerciseGoalFilter] = useState('')
+  const [exerciseEquipmentFilter, setExerciseEquipmentFilter] = useState('')
+  const [exerciseDifficultyFilter, setExerciseDifficultyFilter] = useState('')
+  const [exerciseMuscleFilter, setExerciseMuscleFilter] = useState('')
+  const [exerciseActiveFilter, setExerciseActiveFilter] = useState('')
 
   const memberName = (id: number) => {
     const u = findUser(members, id)
@@ -88,11 +95,20 @@ export default function SubAdminTrainingProgramsPage() {
 
   const filteredExercises = useMemo(() => {
     const q = exerciseSearch.trim().toLowerCase()
-    if (!q) return exercises.data
-    return exercises.data?.filter(
-      (e) => e.name.toLowerCase().includes(q) || e.category.toLowerCase().includes(q) || e.muscleGroup?.toLowerCase().includes(q)
-    )
-  }, [exercises.data, exerciseSearch])
+    return exercises.data?.filter((e) => {
+      if (q && !(e.name.toLowerCase().includes(q) || e.category.toLowerCase().includes(q) || e.muscleGroup?.toLowerCase().includes(q))) return false
+      if (exerciseCategoryFilter && e.category !== exerciseCategoryFilter) return false
+      if (exerciseGoalFilter && !e.goals?.includes(exerciseGoalFilter as any)) return false
+      if (exerciseEquipmentFilter && !(e.equipmentTags ?? []).includes(exerciseEquipmentFilter as any)) return false
+      if (exerciseDifficultyFilter && e.difficultyLevel !== exerciseDifficultyFilter) return false
+      if (exerciseMuscleFilter && e.muscleGroup !== exerciseMuscleFilter && !(e.secondaryMuscleGroups ?? []).includes(exerciseMuscleFilter as any)) return false
+      if (exerciseActiveFilter && String(e.isActive) !== exerciseActiveFilter) return false
+      return true
+    })
+  }, [
+    exercises.data, exerciseSearch, exerciseCategoryFilter, exerciseGoalFilter,
+    exerciseEquipmentFilter, exerciseDifficultyFilter, exerciseMuscleFilter, exerciseActiveFilter,
+  ])
 
   return (
     <>
@@ -277,13 +293,56 @@ export default function SubAdminTrainingProgramsPage() {
             </ScoreboardCta>
           }
         >
-          <div style={{ marginBottom: 12, maxWidth: 280 }}>
+          <div style={{ marginBottom: 12, display: 'flex', flexWrap: 'wrap', gap: 8, maxWidth: 820 }}>
             <Input
               placeholder="Search exercises..."
               value={exerciseSearch}
               onChange={(e) => setExerciseSearch(e.target.value)}
-              className="h-8 text-xs"
+              className="h-8 w-56 text-xs"
             />
+            <Select value={exerciseCategoryFilter || 'any'} onValueChange={(v) => setExerciseCategoryFilter(v === 'any' ? '' : v)}>
+              <SelectTrigger className="h-8 w-32 text-xs"><SelectValue placeholder="Category" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any category</SelectItem>
+                {EXERCISE_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={exerciseGoalFilter || 'any'} onValueChange={(v) => setExerciseGoalFilter(v === 'any' ? '' : v)}>
+              <SelectTrigger className="h-8 w-40 text-xs"><SelectValue placeholder="Goal" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any goal</SelectItem>
+                {FITNESS_GOALS.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={exerciseEquipmentFilter || 'any'} onValueChange={(v) => setExerciseEquipmentFilter(v === 'any' ? '' : v)}>
+              <SelectTrigger className="h-8 w-36 text-xs"><SelectValue placeholder="Equipment" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any equipment</SelectItem>
+                {EQUIPMENT_TYPES.map((eq) => <SelectItem key={eq} value={eq}>{eq}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={exerciseDifficultyFilter || 'any'} onValueChange={(v) => setExerciseDifficultyFilter(v === 'any' ? '' : v)}>
+              <SelectTrigger className="h-8 w-32 text-xs"><SelectValue placeholder="Difficulty" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any difficulty</SelectItem>
+                {EXERCISE_DIFFICULTY.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={exerciseMuscleFilter || 'any'} onValueChange={(v) => setExerciseMuscleFilter(v === 'any' ? '' : v)}>
+              <SelectTrigger className="h-8 w-32 text-xs"><SelectValue placeholder="Muscle" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any muscle</SelectItem>
+                {MUSCLE_GROUPS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={exerciseActiveFilter || 'any'} onValueChange={(v) => setExerciseActiveFilter(v === 'any' ? '' : v)}>
+              <SelectTrigger className="h-8 w-28 text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Any status</SelectItem>
+                <SelectItem value="true">Active</SelectItem>
+                <SelectItem value="false">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <RowCardList
             isLoading={exercises.isLoading || libraryConfig.isLoading}
@@ -293,11 +352,12 @@ export default function SubAdminTrainingProgramsPage() {
             emptyMessage={exerciseSearch ? 'No exercises match your search.' : 'No exercises yet — click "Add Exercise" to create your first one.'}
           >
             {filteredExercises?.map((e) => (
-              <RowCard key={e.id} columns="1.4fr 1fr 1fr 0.8fr auto">
+              <RowCard key={e.id} columns="1.3fr 0.8fr 0.8fr 0.7fr 0.6fr auto">
                 <div style={{ fontWeight: 700, fontSize: 14.5, color: T.text }}>{e.name}</div>
                 <div style={{ fontSize: 13.5, color: T.dim }}>{e.category}</div>
                 <div style={{ fontSize: 13.5, color: T.dim }}>{e.muscleGroup ?? '—'}</div>
                 <div style={{ fontSize: 13.5, color: T.dim }}>{e.difficultyLevel ?? '—'}</div>
+                <div style={{ fontSize: 13.5, color: e.isActive ? T.dim : T.signal }}>{e.isActive ? 'Active' : 'Inactive'}</div>
                 <ScoreboardIconButton icon={Trash2} onClick={() => deleteExercise.mutate(e.id)} disabled={deletingExerciseId === e.id} />
               </RowCard>
             ))}

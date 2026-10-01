@@ -5,8 +5,7 @@ import { useTrainerMembers } from '@/hooks/useTrainerMembers'
 import { useTrainerSessions, useUpdateTrainerSession } from '@/hooks/useTrainerSessions'
 import type { TrainerSessionRecord, TrainerSessionStatus } from '@/api/trainer-sessions.api'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-
-const statuses: TrainerSessionStatus[] = ['scheduled', 'completed', 'cancelled']
+import { TRAINER_SESSION_STATUSES as statuses } from '@/components/constants'
 
 export default function TrainerSessionsPage() {
   const members = useTrainerMembers({ page: 1, perPage: 100 })

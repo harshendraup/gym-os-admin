@@ -2,10 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
   appConfigApi,
-  type ConfigSection,
-  type MediaKind,
   type SectionMap,
 } from '@/api/app-config.api'
+import { type ConfigSection, type MediaKind } from '../components/constants'
 import { getApiErrorMessage } from '@/lib/api-error'
 
 /**

@@ -1,6 +1,13 @@
 import { get, post, put, del } from './client'
 
-export type NutritionGoal = 'Weight Loss' | 'Muscle Gain' | 'Fat Loss' | 'Fitness'
+export type NutritionGoal =
+  | 'Weight & Fat Loss'
+  | 'Muscle Building'
+  | 'Body Recomposition'
+  | 'Weight Maintenance'
+  | 'General Health & Fitness'
+  | 'Sports Performance'
+  | 'Healthy Aging'
 export type ActivityLevel = 'Sedentary' | 'Light' | 'Moderate' | 'Active' | 'Very Active'
 export type DietType = 'Vegetarian' | 'Non-Vegetarian' | 'Eggetarian' | 'Vegan'
 export type NutritionAssessmentStatus = 'Draft' | 'Completed'

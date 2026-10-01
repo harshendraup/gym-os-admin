@@ -14,8 +14,7 @@ import {
 import { useUpdateDietAssignment } from '@/hooks/useDietAssignments'
 import type { ManagedUser } from '@/api/user-management.api'
 import type { DietAssignmentRecord, DietAssignmentStatus } from '@/api/diet-assignments.api'
-
-const STATUSES: DietAssignmentStatus[] = ['Draft', 'Active', 'Completed']
+import { DIET_ASSIGNMENT_STATUSES as STATUSES } from '../constants'
 
 const schema = z.object({
   trainerId: z.string().optional(),

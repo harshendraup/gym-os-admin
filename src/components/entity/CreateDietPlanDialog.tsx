@@ -25,19 +25,7 @@ import type {
 } from '@/api/diet-plans.api'
 import type { NutritionAssessmentRecord, DietType } from '@/api/nutrition-assessments.api'
 import type { ManagedUser } from '@/api/user-management.api'
-
-const GOALS: DietPlanGoal[] = ['Weight Loss', 'Muscle Gain', 'Fat Loss', 'Fitness']
-const MEAL_TYPES = ['Breakfast', 'Mid-Morning', 'Lunch', 'Pre-Workout', 'Post-Workout', 'Evening Snack', 'Dinner', 'Bedtime']
-const DIET_TYPES: DietType[] = ['Vegetarian', 'Non-Vegetarian', 'Eggetarian', 'Vegan']
-const FOOD_PREFERENCES = ['Home-cooked', 'Tiffin / Delivery Service', 'Eats Out Often', 'Meal Prep (Batch Cooked)', 'No Specific Preference']
-const HYDRATION_SOURCES = ['Plain Water', 'Water + Coconut Water', 'Water + Fresh Fruit Juice', 'Water + Buttermilk / Lassi', 'Water + Electrolyte (ORS)']
-const HYDRATION_PRESETS_ML = [2000, 2500, 3000, 4000]
-
-// Priority order for picking a default N-meal spread (most essential meals
-// first), independent of MEAL_TYPES' chronological display order — e.g. a
-// 4-meal day should end up Breakfast/Lunch/Evening Snack/Dinner, not stop at
-// Pre-Workout just because that's earlier in the day.
-const DEFAULT_MEAL_PRIORITY = ['Breakfast', 'Lunch', 'Dinner', 'Evening Snack', 'Mid-Morning', 'Post-Workout', 'Pre-Workout', 'Bedtime']
+import { DIET_GOALS, MEAL_TYPES, DIET_TYPES, FOOD_PREFERENCES, HYDRATION_SOURCES, HYDRATION_PRESETS_ML, DEFAULT_MEAL_PRIORITY } from '../constants'
 
 /** Auto-suggested starting name — the trainer can freely retype it; we only ever set this, never force it back. */
 function suggestPlanName(goal: DietPlanGoal, member?: ManagedUser | null) {
@@ -213,7 +201,7 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
   const [name, setName] = useState('')
   const [nameTouched, setNameTouched] = useState(false)
   const [templateId, setTemplateId] = useState('')
-  const [goal, setGoal] = useState<DietPlanGoal>('Fitness')
+  const [goal, setGoal] = useState<DietPlanGoal>('General Health & Fitness')
   const [description, setDescription] = useState('')
   const [caloriesTarget, setCaloriesTarget] = useState('')
   const [proteinTarget, setProteinTarget] = useState('')
@@ -240,7 +228,7 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
     if (!open) return
     setTab('overview')
     setBranchId(plan ? String(plan.branchId) : fixedBranchId ? String(fixedBranchId) : '')
-    const initialGoal = plan?.goal ?? (!isEdit && assessment ? assessment.goal : 'Fitness')
+    const initialGoal = plan?.goal ?? (!isEdit && assessment ? assessment.goal : 'General Health & Fitness')
     setGoal(initialGoal)
     setName(plan?.name || (!isEdit ? suggestPlanName(initialGoal, member) : ''))
     setNameTouched(false)
@@ -631,7 +619,7 @@ export function CreateDietPlanDialog({ open, onClose, branchOptions, fixedBranch
                   <Label>Goal</Label>
                   <Select value={goal} onValueChange={(v) => handleGoalChange(v as DietPlanGoal)}>
                     <SelectTrigger className="sm:w-56"><SelectValue /></SelectTrigger>
-                    <SelectContent>{GOALS.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
+                    <SelectContent>{DIET_GOALS.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5">

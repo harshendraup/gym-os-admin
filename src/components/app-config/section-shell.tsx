@@ -5,7 +5,8 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
-import type { AppConfigRecord, ConfigSection, SectionMap } from '@/api/app-config.api'
+import type { ConfigSection } from '../constants'
+import type { AppConfigRecord, SectionMap } from '@/api/app-config.api'
 
 /**
  * Local draft for one configuration section.

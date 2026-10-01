@@ -12,22 +12,22 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { useCreateNutritionAssessment, useUpdateNutritionAssessment } from '@/hooks/useNutritionAssessments'
 import type {
-  NutritionGoal, ActivityLevel, DietType, NutritionAssessmentRecord,
+  NutritionGoal as ApiNutritionGoal, 
+  ActivityLevel as ApiActivityLevel, 
+  DietType as ApiDietType, 
+  NutritionAssessmentRecord,
 } from '@/api/nutrition-assessments.api'
 import type { ManagedUser } from '@/api/user-management.api'
-
-const GOALS: NutritionGoal[] = ['Weight Loss', 'Muscle Gain', 'Fat Loss', 'Fitness']
-const ACTIVITY_LEVELS: ActivityLevel[] = ['Sedentary', 'Light', 'Moderate', 'Active', 'Very Active']
-const DIET_TYPES: DietType[] = ['Vegetarian', 'Non-Vegetarian', 'Eggetarian', 'Vegan']
+import { ACTIVITY_LEVELS, DIET_GOALS, DIET_TYPES, type DietGoal, type ActivityLevel, type DietType } from '../constants'
 
 const schema = z.object({
-  goal: z.enum(['Weight Loss', 'Muscle Gain', 'Fat Loss', 'Fitness']),
-  activityLevel: z.enum(['Sedentary', 'Light', 'Moderate', 'Active', 'Very Active']),
+  goal: z.string(),
+  activityLevel: z.string(),
   workoutFrequency: z.string().optional(),
   workoutTime: z.string().optional(),
   wakeTime: z.string().optional(),
   sleepTime: z.string().optional(),
-  dietType: z.enum(['Vegetarian', 'Non-Vegetarian', 'Eggetarian', 'Vegan']),
+  dietType: z.string(),
   mealsPerDay: z.string().optional(),
   foodPreference: z.string().optional(),
   cookingPreference: z.string().optional(),
@@ -67,13 +67,13 @@ export function NutritionAssessmentDialog({ open, onClose, member, assessment, o
   useEffect(() => {
     if (!open) return
     reset({
-      goal: assessment?.goal ?? 'Fitness',
-      activityLevel: assessment?.activityLevel ?? 'Moderate',
+      goal: assessment?.goal ?? DIET_GOALS[0],
+      activityLevel: assessment?.activityLevel ?? ACTIVITY_LEVELS[2],
       workoutFrequency: assessment?.workoutFrequency ? String(assessment.workoutFrequency) : '',
       workoutTime: assessment?.workoutTime ?? '',
       wakeTime: assessment?.wakeTime ?? '',
       sleepTime: assessment?.sleepTime ?? '',
-      dietType: assessment?.dietType ?? 'Vegetarian',
+      dietType: assessment?.dietType ?? DIET_TYPES[0],
       mealsPerDay: assessment?.mealsPerDay ? String(assessment.mealsPerDay) : '4',
       foodPreference: assessment?.foodPreference ?? '',
       cookingPreference: assessment?.cookingPreference ?? '',
@@ -114,10 +114,17 @@ export function NutritionAssessmentDialog({ open, onClose, member, assessment, o
       status,
     }
 
+    const typedPayload = {
+      ...payload,
+      goal: values.goal as any,
+      activityLevel: values.activityLevel as any,
+      dietType: values.dietType as any,
+    }
+
     if (isEdit) {
-      update.mutate(payload, { onSuccess: (result) => { onSaved?.(result); onClose() } })
+      update.mutate(typedPayload, { onSuccess: (result) => { onSaved?.(result); onClose() } })
     } else {
-      create.mutate({ ...payload, memberId: Number(member.id) }, { onSuccess: (result) => { onSaved?.(result); onClose() } })
+      create.mutate({ ...typedPayload, memberId: Number(member.id) }, { onSuccess: (result) => { onSaved?.(result); onClose() } })
     }
   }
 
@@ -135,9 +142,9 @@ export function NutritionAssessmentDialog({ open, onClose, member, assessment, o
           <Section title="Nutrition Summary">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               <Field label="Goal">
-                <Select value={goal} onValueChange={(v) => setValue('goal', v as NutritionGoal)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{GOALS.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
+                <Select value={goal} onValueChange={(v) => setValue('goal', v as any)}>
+                  <SelectTrigger><SelectValue placeholder="Select Goal"/></SelectTrigger>
+                  <SelectContent>{DIET_GOALS.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
                 </Select>
               </Field>
             </div>

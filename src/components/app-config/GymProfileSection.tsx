@@ -6,12 +6,11 @@ import { Switch } from '@/components/ui/switch'
 import { Field, SectionNotice, SectionShell, TextField, useSectionDraft } from './section-shell'
 import { useResetAppConfigSection, useSaveAppConfigSection } from '@/hooks/useAppConfig'
 import { validateGymProfile } from './validation'
-import { WEEKDAYS, type AppConfigRecord, type OperatingDay } from '@/api/app-config.api'
-
-const DAY_LABELS: Record<string, string> = {
-  mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday',
-  fri: 'Friday', sat: 'Saturday', sun: 'Sunday',
-}
+import { WEEKDAYS_ABBR as WEEKDAYS, DAY_LABELS } from '../constants'
+import {
+  type AppConfigRecord,
+  type OperatingDay,
+} from '@/api/app-config.api'
 
 /**
  * The gym's app-facing identity: tagline, description, facilities, hours and

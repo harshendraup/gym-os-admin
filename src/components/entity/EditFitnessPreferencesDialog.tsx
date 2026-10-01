@@ -17,23 +17,7 @@ import type {
   FitnessLevel, GymExperienceLevel, FitnessGoal, MemberFitnessPreferenceRecord,
 } from '@/api/member-fitness-preferences.api'
 import type { ManagedUser } from '@/api/user-management.api'
-
-const FITNESS_LEVELS: FitnessLevel[] = ['Beginner', 'Intermediate', 'Advanced']
-const GYM_EXPERIENCE_LEVELS: GymExperienceLevel[] = ['Less than 6 months', '6-12 months', '1-3 years', '3+ years']
-const FITNESS_GOALS: FitnessGoal[] = [
-  'Weight Loss', 'Fat Loss', 'Muscle Gain', 'Strength', 'Bodybuilding',
-  'General Fitness', 'Endurance', 'Mobility/Flexibility', 'Sports Performance', 'Weight Maintenance',
-]
-const GOAL_TIMELINES = ['1 Month', '3 Months', '6 Months', '1 Year', 'Ongoing']
-const WORKOUT_TYPES = ['Strength', 'Cardio', 'HIIT', 'Functional', 'Mobility', 'Flexibility', 'Bodybuilding']
-const DURATIONS = [30, 45, 60, 75, 90]
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-
-const HEALTH_FIELDS = [
-  { key: 'injuries', label: 'Injuries' },
-  { key: 'physicalLimitations', label: 'Physical Limitations' },
-  { key: 'exerciseRestrictions', label: 'Exercise Restrictions' },
-] as const
+import { FITNESS_GOALS, FITNESS_LEVELS, GYM_EXPERIENCE_LEVELS, GOAL_TIMELINES, WORKOUT_TYPES, WORKOUT_DURATIONS as DURATIONS, DAYS_ABBREVIATED as DAYS, HEALTH_FIELDS } from '../constants'
 
 const schema = z.object({
   // Goals
@@ -189,7 +173,7 @@ export function EditFitnessPreferencesDialog({ open, onClose, member, preference
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               <Field label="Primary Goal" hint="Recommended">
                 <Select value={primaryGoal} onValueChange={(v) => setValue('primaryGoal', v)}>
-                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Select Primary Goal" /></SelectTrigger>
                   <SelectContent>{FITNESS_GOALS.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
                 </Select>
               </Field>
