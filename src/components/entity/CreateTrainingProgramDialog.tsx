@@ -19,7 +19,7 @@ import type {
 } from '@/api/training-programs.api'
 import type { ExerciseCategory } from '@/api/exercises.api'
 import type { GymLibraryCategory } from '@/api/exercise-library-config.api'
-import { FITNESS_GOALS, DIFFICULTY_LEVELS as DIFFICULTIES, EXERCISE_CATEGORIES as CATEGORY_ORDER, EQUIPMENT_TYPES, WEEKDAYS } from '../constants'
+import { FITNESS_GOALS, DIFFICULTY_LEVELS as DIFFICULTIES, EXERCISE_CATEGORIES as CATEGORY_ORDER, WEEKDAYS } from '../constants'
 
 interface ExerciseDraft {
   key: string
@@ -105,12 +105,10 @@ export function CreateTrainingProgramDialog({
     }
   }, [open, fixedBranchId])
 
-  // Goal/equipment/difficulty filters narrow the picker to help the trainer
-  // find relevant exercises — they never hard-block a selection, and reset
+  // Goal filter narrows the picker to help the trainer
+  // find relevant exercises — it never hard-blocks a selection, and reset
   // to "Any" always still shows the full active library.
   const [pickerGoalFilter, setPickerGoalFilter] = useState('')
-  const [pickerEquipmentFilter, setPickerEquipmentFilter] = useState('')
-  const [pickerDifficultyFilter, setPickerDifficultyFilter] = useState('')
 
   // Grouped by category so a gym with a large library can scan by type
   // instead of hunting through one long alphabetical list. Inactive
@@ -119,8 +117,6 @@ export function CreateTrainingProgramDialog({
     const filtered = exercises.filter((ex) => {
       if (ex.isActive === false) return false
       if (pickerGoalFilter && !ex.goals?.includes(pickerGoalFilter as any)) return false
-      if (pickerEquipmentFilter && !(ex.equipmentTags ?? []).includes(pickerEquipmentFilter as any)) return false
-      if (pickerDifficultyFilter && ex.difficultyLevel !== pickerDifficultyFilter) return false
       return true
     })
     const byCategory = new Map<ExerciseCategory, typeof exercises>()
@@ -132,7 +128,7 @@ export function CreateTrainingProgramDialog({
     return CATEGORY_ORDER.map((category) => ({ category, items: byCategory.get(category) ?? [] })).filter(
       (g) => g.items.length > 0
     )
-  }, [exercises, pickerGoalFilter, pickerEquipmentFilter, pickerDifficultyFilter])
+  }, [exercises, pickerGoalFilter])
 
   const updateDay = (key: string, patch: Partial<DayDraft>) =>
     setDays((prev) => prev.map((d) => (d.key === key ? { ...d, ...patch } : d)))
@@ -313,26 +309,12 @@ export function CreateTrainingProgramDialog({
                     {FITNESS_GOALS.filter((g) => g !== goal).map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Select value={pickerEquipmentFilter || 'any'} onValueChange={(v) => setPickerEquipmentFilter(v === 'any' ? '' : v)}>
-                  <SelectTrigger className="h-7 w-36 text-xs"><SelectValue placeholder="Equipment" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="any">Any equipment</SelectItem>
-                    {EQUIPMENT_TYPES.map((eq) => <SelectItem key={eq} value={eq}>{eq}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Select value={pickerDifficultyFilter || 'any'} onValueChange={(v) => setPickerDifficultyFilter(v === 'any' ? '' : v)}>
-                  <SelectTrigger className="h-7 w-32 text-xs"><SelectValue placeholder="Difficulty" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="any">Any difficulty</SelectItem>
-                    {DIFFICULTIES.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                {(pickerGoalFilter || pickerEquipmentFilter || pickerDifficultyFilter) && (
+                {pickerGoalFilter && (
                   <Button
                     type="button" size="sm" variant="ghost" className="h-7 text-xs text-muted-foreground"
-                    onClick={() => { setPickerGoalFilter(''); setPickerEquipmentFilter(''); setPickerDifficultyFilter('') }}
+                    onClick={() => setPickerGoalFilter('')}
                   >
-                    Clear filters
+                    Clear filter
                   </Button>
                 )}
                 <span className="text-xs text-muted-foreground">
