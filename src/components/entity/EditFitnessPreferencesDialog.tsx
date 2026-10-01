@@ -77,7 +77,14 @@ export function EditFitnessPreferencesDialog({ open, onClose, member, preference
     if (!open) return
     reset({
       primaryGoal: preferences?.primaryGoal ?? undefined,
-      secondaryGoals: preferences?.secondaryGoals ?? [],
+      secondaryGoals: (preferences?.secondaryGoals ?? [])
+        .map((g) => {
+          if (typeof g === 'number') {
+            return FITNESS_GOALS[g] ?? undefined
+          }
+          return String(g)
+        })
+        .filter((g): g is string => g !== undefined && FITNESS_GOALS.includes(g as any)),
       targetWeight: preferences?.targetWeight ?? '',
       targetBodyFatPercentage: preferences?.targetBodyFatPercentage ?? '',
       goalTimeline: preferences?.goalTimeline ?? undefined,
@@ -85,10 +92,20 @@ export function EditFitnessPreferencesDialog({ open, onClose, member, preference
       gymExperienceLevel: preferences?.gymExperienceLevel ?? undefined,
       workoutFrequency: preferences?.workoutFrequency ? String(preferences.workoutFrequency) : '',
       previousGymExperience: preferences?.previousGymExperience ?? '',
-      preferredWorkoutTypes: preferences?.preferredWorkoutTypes ?? [],
-      favoriteExercises: preferences?.favoriteExercises ?? [],
-      avoidExercises: preferences?.avoidExercises ?? [],
-      preferredDays: preferences?.preferredDays ?? [],
+      preferredWorkoutTypes: (preferences?.preferredWorkoutTypes ?? []).map((t) => {
+        if (typeof t === 'number') {
+          return WORKOUT_TYPES[t] ?? undefined
+        }
+        return String(t)
+      }).filter(Boolean) as string[],
+      favoriteExercises: (preferences?.favoriteExercises ?? []).map(String),
+      avoidExercises: (preferences?.avoidExercises ?? []).map(String),
+      preferredDays: (preferences?.preferredDays ?? []).map((d) => {
+        if (typeof d === 'number') {
+          return DAYS[d] ?? undefined
+        }
+        return String(d)
+      }).filter(Boolean) as string[],
       preferredDuration: preferences?.preferredDuration ? String(preferences.preferredDuration) : undefined,
       preferredTime: preferences?.preferredTime ?? '',
       injuries: preferences?.injuries ?? '',
@@ -133,7 +150,14 @@ export function EditFitnessPreferencesDialog({ open, onClose, member, preference
       {
         memberId: Number(member.id),
         primaryGoal: (values.primaryGoal || undefined) as FitnessGoal | undefined,
-        secondaryGoals: values.secondaryGoals?.length ? (values.secondaryGoals as FitnessGoal[]) : undefined,
+        secondaryGoals: values.secondaryGoals?.length ? (values.secondaryGoals
+          .map((g) => {
+            if (typeof g === 'number') {
+              return FITNESS_GOALS[g] ?? undefined
+            }
+            return String(g)
+          })
+          .filter((g): g is string => g !== undefined && FITNESS_GOALS.includes(g as any)) as FitnessGoal[]) : undefined,
         targetWeight: values.targetWeight ? Number(values.targetWeight) : undefined,
         targetBodyFatPercentage: values.targetBodyFatPercentage ? Number(values.targetBodyFatPercentage) : undefined,
         goalTimeline: values.goalTimeline || undefined,
@@ -141,10 +165,20 @@ export function EditFitnessPreferencesDialog({ open, onClose, member, preference
         gymExperienceLevel: (values.gymExperienceLevel || undefined) as GymExperienceLevel | undefined,
         workoutFrequency: values.workoutFrequency ? Number(values.workoutFrequency) : undefined,
         previousGymExperience: values.previousGymExperience || undefined,
-        preferredWorkoutTypes: values.preferredWorkoutTypes?.length ? values.preferredWorkoutTypes : undefined,
-        favoriteExercises: values.favoriteExercises?.length ? values.favoriteExercises : undefined,
-        avoidExercises: values.avoidExercises?.length ? values.avoidExercises : undefined,
-        preferredDays: values.preferredDays?.length ? values.preferredDays : undefined,
+        preferredWorkoutTypes: values.preferredWorkoutTypes?.length ? (values.preferredWorkoutTypes.map((t) => {
+          if (typeof t === 'number') {
+            return WORKOUT_TYPES[t] ?? undefined
+          }
+          return String(t)
+        }).filter(Boolean)) : undefined,
+        favoriteExercises: values.favoriteExercises?.length ? values.favoriteExercises.map(String).filter(Boolean) : undefined,
+        avoidExercises: values.avoidExercises?.length ? values.avoidExercises.map(String).filter(Boolean) : undefined,
+        preferredDays: values.preferredDays?.length ? (values.preferredDays.map((d) => {
+          if (typeof d === 'number') {
+            return DAYS[d] ?? undefined
+          }
+          return String(d)
+        }).filter(Boolean)) : undefined,
         preferredDuration: values.preferredDuration ? Number(values.preferredDuration) : undefined,
         preferredTime: values.preferredTime || undefined,
         injuries: values.injuries || undefined,
